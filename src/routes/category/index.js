@@ -9,7 +9,7 @@ router.get('/', async(req, res)=> {
             res.status(404).json({
                 category
             })
-            Db.end()
+            // Db.end()
         } else {
             res.status(200).json({
                 message : "Category not found"
