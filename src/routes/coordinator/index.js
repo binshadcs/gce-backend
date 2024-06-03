@@ -31,7 +31,7 @@ router.get('/all', async(req, res)=> {
 }) 
 
 router.post('/register', async(req, res)=> {
-    const { password } = req.body;
+    const { categoryId } = req.body;
     const result = await hashPassword(password)
     res.status(200).json({
         message : result
