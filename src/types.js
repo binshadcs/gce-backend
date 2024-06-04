@@ -82,6 +82,26 @@ const LoginUser = zod.object({
     password : zod.string()
 })
 
+const CreateUploads = zod.object({
+    userId : zod.number(),
+    name : zod.string(),
+    planterName : zod.string(),
+    treeName : zod.string(),
+    image : zod.string().optional(),
+    groupId : zod.number()
+})
+
+const CreateActivity = zod.object({
+    userId : zod.number(),
+    category : zod.number(),
+    subCategory : zod.string(),
+    name : zod.string(),
+    address : zod.string(),
+    activityTitle : zod.string(),
+    socialMediaLink : zod.string(),
+    activityThumbnail : zod.string()
+})
+
 
 module.exports = {
     CreateGroup,
@@ -92,5 +112,7 @@ module.exports = {
     CreatePromoter,
     CreateResidence,
     CreateUser,
-    LoginUser
+    LoginUser,
+    CreateUploads,
+    CreateActivity
 }

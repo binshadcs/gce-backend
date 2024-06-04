@@ -8,6 +8,7 @@ async function userAuth(req, res, next) {
             const result = jwt.verify(cookies.token, JwtScret)
             if(result.roleId === 1) {
                req.userId = result.id
+               req.userGrpId = result.groupId
                next()
             } else {
                 res.status(400).json({
