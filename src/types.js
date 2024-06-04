@@ -13,8 +13,15 @@ const CreateGroup = zod.object({
     district : zod.number(),
     lsg : zod.number(),
     username : zod.string(),
+    password : zod.string().min(8)
+})
+
+const CoordinatorLogin = zod.object({
+    username : zod.string(),
     password : zod.string()
 })
+
+const CoordinatorSpecific = zod.number()
 
 // NGO
 const CreateNGO = zod.object({
@@ -24,5 +31,7 @@ const CreateNGO = zod.object({
 
 module.exports = {
     CreateGroup,
-    CreateNGO
+    CreateNGO,
+    CoordinatorLogin,
+    CoordinatorSpecific
 }

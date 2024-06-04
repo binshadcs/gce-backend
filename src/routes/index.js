@@ -23,7 +23,6 @@ router.get("/country", async(req, res) => {
             res.status(404).json({
                 country
             })
-            // Db.end()
         } else {
             res.status(200).json({
                 message : "Category not found"
@@ -43,7 +42,6 @@ router.get("/state", async(req, res) => {
             res.status(404).json({
                 state
             })
-            // Db.end()
         } else {
             res.status(200).json({
                 message : "Category not found"
@@ -63,7 +61,6 @@ router.get("/district", async(req, res) => {
             res.status(404).json({
                 district
             })
-            // Db.end()
         } else {
             res.status(200).json({
                 message : "Category not found"
@@ -84,10 +81,28 @@ router.get("/lsg/:id", async(req, res) => {
             res.status(404).json({
                 district
             })
-            // Db.end()
         } else {
             res.status(200).json({
                 message : "Category not found"
+            })
+        }
+    } catch (error) {
+        res.status(404).json({
+            message : "can't fetch category"
+        })
+    } 
+})
+
+router.get("/user_roles", async(req, res) => {
+    try {
+        const [roles] = await Db.promise().query('SELECT * FROM tbl_user_roles')
+        if(roles) {
+            res.status(200).json({
+                roles
+            })
+        } else {
+            res.status(400).json({
+                message : "Roles not found"
             })
         }
     } catch (error) {

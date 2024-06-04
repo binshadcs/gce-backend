@@ -1,7 +1,11 @@
 const { Router } = require('express');
 const { Db } = require('../../config/db');
-const { hashPassword, comparePassword } = require('../util');
-const { CreateGroup } = require('../../types');
+const { hashPassword } = require('../util');
+const { CreateGroup, CoordinatorLogin, CoordinatorSpecific } = require('../../types');
+const jwt = require('jsonwebtoken');
+const { JwtScret } = require('../../config/config');
+const { coordinatorAuth } = require('../../middleware/coordinator');
+
 const router = Router()
 
 router.get('/', (req, res)=> {
@@ -115,11 +119,68 @@ router.post('/register', async(req, res)=> {
 });
 
 router.post('/login', async(req, res)=> {
-    const { password } = req.body;
-    const result = await comparePassword(password, '$2b$10$XxiqjM4fkoPwtSTzFZTHIebbPksIkqHoLh4tyb/WC3OrakxuoT7sy')
-    res.status(200).json({
-        message : result
-    })
+    const { username, password } = req.body;
+    const result = CoordinatorLogin.safeParse({username, password});
+    const hashedPassword = await hashPassword(password)
+    if(result.success) {
+        try {
+            let [value] = await Db.promise().query('SELECT co_username, co_ord_id, gp_id FROM tbl_group_coordinators where co_username = ? or co_password = ? ',[username, hashedPassword]);
+            if(value !== undefined) {
+                const token = jwt.sign({
+                                id: value[0].co_ord_id,
+                                groupId : value[0].gp_id,
+                                roleId : 2
+                            }, JwtScret);
+                res.cookie("token", token);
+                res.status(200).json({
+                    message : "Logged in!"
+                })
+            } else {
+                res.status(404).json({
+                    message : "User not found"
+                })
+            }
+        } catch (error) {
+            res.status(404).json({
+                message : "Can't fecth data"
+            })
+        }
+    } else {
+        res.status(400).json({
+            message : "Invalid data"
+        })
+    }
 });
+
+router.post('/:id', coordinatorAuth, async(req, res)=> {
+    const coordinator_id = req.params.id;
+    // console.log(coordinator_id)
+    const result = CoordinatorSpecific.safeParse( "tss" )
+    console.log(result)
+    // if(result.success) {
+        // console.log("reached here")
+    try {
+        const [coordinator] = await Db.promise().query('SELECT co_ord_id, gp_id, co_ord_name, co_ord_contact, co_profession from tbl_group_coordinators where co_ord_id = ?',[coordinator_id]);
+        // console.log(coordinator)
+        if(coordinator.length > 0) {
+            res.status(404).json({
+                coordinator
+            })
+        } else {
+            res.status(400).json({
+                message : "Coordinator not found"
+            })
+        }
+    } catch (error) {
+        res.status(404).json({
+            message : "can't fetch category"
+        })
+    } 
+    // } else {
+    //     res.status(304).json({
+    //         message : "Invalid data"
+    //     })
+    // }
+})
 
 module.exports = router;
