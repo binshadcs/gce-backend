@@ -16,6 +16,13 @@ const CreateGroup = zod.object({
     password : zod.string()
 })
 
+// NGO
+const CreateNGO = zod.object({
+    groupId : zod.number(),
+    members : zod.number()
+})
+
 module.exports = {
-    CreateGroup
+    CreateGroup,
+    CreateNGO
 }
