@@ -133,7 +133,12 @@ router.post('/login', async(req, res)=> {
                             }, JwtScret);
                 res.cookie("token", token);
                 res.status(200).json({
-                    message : "Logged in!"
+                    message : "Logged in!",
+                    data : {
+                        id: value[0].co_ord_id,
+                        groupId : value[0].gp_id,
+                        roleId : 2 
+                    }
                 })
             } else {
                 res.status(404).json({

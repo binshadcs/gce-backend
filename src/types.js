@@ -29,9 +29,20 @@ const CreateNGO = zod.object({
     members : zod.number()
 })
 
+// School
+const CreateSchool = zod.object({
+    groupId : zod.number(),
+    clubs : zod.string(),
+    list_of_classes : zod.string() ,
+    no_of_students : zod.number(),
+    phoneNUmber : zod.number()
+    
+})
+
 module.exports = {
     CreateGroup,
     CreateNGO,
     CoordinatorLogin,
-    CoordinatorSpecific
+    CoordinatorSpecific,
+    CreateSchool
 }
