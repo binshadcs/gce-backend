@@ -1,5 +1,5 @@
 const { Router } = require('express')
-const { CreateNGO, CreateSchool, CreatePromoter } = require('../../types')
+const { CreateNGO, CreateSchool, CreatePromoter, CreateResidence } = require('../../types')
 const { Db } = require('../../config/db')
 const router = Router()
 
@@ -11,35 +11,30 @@ router.get('/all', (req, res)=> {
 
 router.post('/register', async(req, res) => {
     const { groupId,
-        cityName,
         countryId,
         stateId,
         districtId,
         lsgdId,
-        totalNoOfMembers,
-        categoryIdPromoting
+        totalNoOfMembers
         } = req.body;
-    const result = CreatePromoter.safeParse({ groupId,
-        cityName,
+    const result = CreateResidence.safeParse({ groupId,
         countryId,
         stateId,
         districtId,
         lsgdId,
-        totalNoOfMembers,
-        categoryIdPromoting })
+        totalNoOfMembers })
     if(result.success) {
         try {
-            const [{insertId}] = await Db.promise().query('INSERT INTO tbl_promoters (group_id, city_name, country_id, state_id, lsgd_id, total_members, category_id_promoting) VALUES(?,?,?,?,?,?, ?)', [groupId,
-                cityName,
+            const [{insertId}] = await Db.promise().query('INSERT INTO tbl_residence_association (group_id, no_of_members, country_id, state_id, district_id, lsgd_id) VALUES(?,?,?,?,?,?)', [groupId,
+                totalNoOfMembers,
                 countryId,
                 stateId,
                 districtId,
                 lsgdId,
-                totalNoOfMembers,
-                categoryIdPromoting])
+            ])
             
             res.status(200).json({
-                promotersId : insertId
+                residenceAssociationId : insertId
             })
         } catch (error) {
             console.log(error)

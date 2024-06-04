@@ -124,7 +124,7 @@ router.post('/login', async(req, res)=> {
     const hashedPassword = await hashPassword(password)
     if(result.success) {
         try {
-            let [value] = await Db.promise().query('SELECT co_username, co_ord_id, gp_id FROM tbl_group_coordinators where co_username = ? or co_password = ? ',[username, hashedPassword]);
+            let [value] = await Db.promise().query('SELECT co_username, co_ord_id, gp_id FROM tbl_group_coordinators where co_username = ? and co_password = ? ',[username, hashedPassword]);
             if(value !== undefined) {
                 const token = jwt.sign({
                                 id: value[0].co_ord_id,

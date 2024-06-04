@@ -7,7 +7,8 @@ async function userAuth(req, res, next) {
         try {
             const result = jwt.verify(cookies.token, JwtScret)
             if(result.roleId === 1) {
-                next()
+               req.userId = result.id
+               next()
             } else {
                 res.status(400).json({
                     message : "Try to access with user credential"

@@ -13,7 +13,7 @@ router.use("/category", categoryRoute)
 router.use('/activity', activityRoute);
 router.use('/coordinator', coordinatorRoute);
 router.use('/group', groupRoute);
-router.use('/upload', uploadRoute);
+router.use('/uploads', uploadRoute);
 router.use('/user', userRoute);
 
 router.get("/country", async(req, res) => {

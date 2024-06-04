@@ -39,10 +39,58 @@ const CreateSchool = zod.object({
     
 })
 
+// promoter 
+const CreatePromoter = zod.object({
+    groupId : zod.number(),
+    cityName : zod.string(),
+    countryId : zod.number(),
+    stateId : zod.number(),
+    districtId : zod.number(),
+    lsgdId : zod.number(),
+    totalNoOfMembers : zod.number(),
+    categoryIdPromoting : zod.number()
+})
+
+// Residence associates
+const CreateResidence = zod.object({
+    groupId : zod.number(),
+    countryId : zod.number(),
+    stateId : zod.number(),
+    districtId : zod.number(),
+    lsgdId : zod.number(),
+    totalNoOfMembers : zod.number()
+})
+
+// User
+const CreateUser = zod.object({
+    groupId : zod.number(),
+    name : zod.string(),
+    email : zod.string().email(),
+    userPhoto: zod.string().optional(),
+    profileDescription : zod.string().optional(),
+    mobileNumber : zod.number(),
+    countryId : zod.number(),
+    stateId : zod.number(),
+    address : zod.string(),
+    gender : zod.string(),
+    password : zod.string(),
+    referalCode : zod.string().optional()
+})
+
+const LoginUser = zod.object({
+    phoneNumber : zod.number(),
+    password : zod.string()
+})
+
+
 module.exports = {
     CreateGroup,
     CreateNGO,
     CoordinatorLogin,
     CoordinatorSpecific,
-    CreateSchool
+    CreateSchool,
+    CreatePromoter,
+    CreateResidence,
+    CreateUser,
+    LoginUser
 }
