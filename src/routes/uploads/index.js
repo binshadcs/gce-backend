@@ -3,6 +3,10 @@ const { userAuth } = require('../../middleware/user');
 const { CreateUploads, ImageFileValidate } = require('../../types');
 const { Db } = require('../../config/db');
 const { uploadMulter } = require('../../config/fileMulter');
+const { PutObjectCommand, GetObjectCommand } = require("@aws-sdk/client-s3");
+const { bucketName, s3 } = require('../../config/bucket');
+const { randomImageName } = require('../util');
+const sharp = require('sharp');
 
 const router = Router()
 
@@ -87,16 +91,23 @@ router.post('/new', userAuth, async(req, res)=> {
     }
 });
 
-router.post('/test', uploadMulter.single('imageFile'), (req, res) => {
-    console.log(req.file)
+router.post('/test', uploadMulter.single('imageFile'), async(req, res) => {
+    // console.log(req.file)
     
     if(req.file !== undefined) {
-        console.log(req.body);
         const type = req.file.mimetype;
         const size = req.file.size;
         const result = ImageFileValidate.safeParse({type, size})
-        console.log(result)
+        const buffer = await sharp(req.file.buffer).resize(1000).toBuffer()
+        const command = new PutObjectCommand({
+            Bucket : bucketName,
+            Key : randomImageName(),
+            Body : buffer,
+            ContentType : req.file.mimetype
+        })
         if(result.success) {
+            await s3.send(command);
+            // s3.
             res.status(200).json({
                 message : "test route workig......!"
             })

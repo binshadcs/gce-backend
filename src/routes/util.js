@@ -1,4 +1,5 @@
 const bcrypt = require('bcrypt');
+const crypto = require('crypto')
 
 const saltRounds = 10;
 
@@ -22,7 +23,10 @@ async function comparePassword(plainPassword, hashedPassword) {
     }
   }
 
+const randomImageName = () => crypto.randomBytes(32).toString('hex'); 
+
 module.exports = {
     hashPassword,
-    comparePassword
+    comparePassword,
+    randomImageName
 }
