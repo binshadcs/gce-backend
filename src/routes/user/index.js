@@ -153,7 +153,7 @@ router.get("/group/:id",coordinatorAuth, async(req, res) => {
     if(groupByToken == groupId) {
         try {
             const [users] = await Db.promise().query('SELECT us_id, us_name, us_email, us_mobile FROM tbl_user WHERE us_grp_id = ?',[groupId])
-            if(users) {
+            if(users.length !== 0) {
                 res.status(200).json({
                     users
                 })
