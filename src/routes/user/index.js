@@ -3,6 +3,8 @@ const { CreateUser, LoginUser } = require('../../types');
 const { Db } = require('../../config/db');
 const { JwtScret } = require('../../config/config');
 const jwt = require('jsonwebtoken');
+const { userAuth } = require('../../middleware/user');
+const { coordinatorAuth } = require('../../middleware/coordinator');
 
 const router = Router()
 
@@ -116,5 +118,60 @@ router.post('/login', async(req, res)=> {
     }
 });
 
+router.get("/:id",userAuth, async(req, res) => {
+    const userIdByToken = req.userId;
+    const userId = req.params.id;
+    if(userId == userIdByToken) {
+        try {
+            const [user] = await Db.promise().query('SELECT us_id, us_name, us_photo, us_profile_description, us_email, us_mobile, us_country, us_state, us_district, us_corporation, us_lsgd, us_ward, us_address, us_gender, us_cntry_id, us_state_id, us_grp_id FROM tbl_user WHERE us_id = ? ',[userId])
+            if(user) {
+                res.status(200).json({
+                    user
+                })
+            } else {
+                res.status(400).json({
+                    message : "user not found"
+                })
+            }
+        } catch (error) {
+            res.status(404).json({
+                message : "can't fetch user"
+            })
+        } 
+    } else {
+        res.status(400).json({
+            message : "Try with logged in user"
+        })
+    }
+    
+})
+
+router.get("/group/:id",coordinatorAuth, async(req, res) => {
+    const groupId = req.params.id;
+    const groupByToken = req.groupId;
+    console.log(groupByToken)
+    if(groupByToken == groupId) {
+        try {
+            const [users] = await Db.promise().query('SELECT us_id, us_name, us_email, us_mobile FROM tbl_user WHERE us_grp_id = ?',[groupId])
+            if(users) {
+                res.status(200).json({
+                    users
+                })
+            } else {
+                res.status(400).json({
+                    message : "users not found"
+                })
+            }
+        } catch (error) {
+            res.status(404).json({
+                message : "can't fetch users"
+            })
+        }
+    } else {
+        res.status(400).json({
+            message : "you can't access other group user data"
+        })
+    } 
+})
 
 module.exports = router;

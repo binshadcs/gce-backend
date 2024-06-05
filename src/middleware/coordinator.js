@@ -8,6 +8,8 @@ async function coordinatorAuth(req, res, next) {
         try {
             const result = jwt.verify(cookies.token, JwtScret)
             if(result.roleId === 2) {
+                req.userId = result.id;
+                req.groupId = result.groupId;
                 next()
             } else {
                 res.status(400).json({

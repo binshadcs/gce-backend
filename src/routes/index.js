@@ -112,4 +112,42 @@ router.get("/user_roles", async(req, res) => {
     } 
 })
 
+router.get("/activity_category", async(req, res) => {
+    try {
+        const [activity_category] = await Db.promise().query('SELECT activity_category_id, activity_category FROM tbl_green_activity_category')
+        if(activity_category) {
+            res.status(200).json({
+                activity_category
+            })
+        } else {
+            res.status(400).json({
+                message : "activity category not found"
+            })
+        }
+    } catch (error) {
+        res.status(404).json({
+            message : "can't fetch activity category"
+        })
+    } 
+})
+
+router.get("/activity_sub_category", async(req, res) => {
+    try {
+        const [activity_sub_category] = await Db.promise().query('SELECT * FROM tbl_activity_sub_category')
+        if(activity_sub_category) {
+            res.status(200).json({
+                activity_sub_category
+            })
+        } else {
+            res.status(400).json({
+                message : "activity sub category not found"
+            })
+        }
+    } catch (error) {
+        res.status(404).json({
+            message : "can't fetch activity sub category"
+        })
+    } 
+})
+
 module.exports = router;
