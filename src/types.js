@@ -2,13 +2,13 @@ const zod = require('zod');
 
 // Coordinators 
 const CreateGroup = zod.object({
-    categoryId : zod.number(),
+    categoryId : zod.string(),
     name : zod.string(),
     location : zod.string(),
     coordinator_name : zod.string(),
-    whatsapp_number : zod.number(),
+    whatsapp_number : zod.string(),
     profession : zod.string(),
-    country : zod.number(),
+    country : zod.string(),
     state : zod.number(),
     district : zod.number(),
     lsg : zod.number(),
@@ -86,7 +86,6 @@ const CreateUploads = zod.object({
     name : zod.string(),
     planterName : zod.string(),
     treeName : zod.string(),
-    image : zod.string().optional(),
     groupId : zod.number()
 })
 

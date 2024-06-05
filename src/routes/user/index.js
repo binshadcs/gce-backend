@@ -21,7 +21,7 @@ router.get('/', (req, res)=> {
 
 router.post('/:id/register',uploadMulter.single('userPhoto'), async(req, res)=> {
     const groupId = Number(req.params.id);
-    console.log(groupId)
+    // console.log(groupId)
     const { 
         name,
         email,
@@ -174,7 +174,7 @@ router.get("/:id",userAuth, async(req, res) => {
 router.get("/group/:id",coordinatorAuth, async(req, res) => {
     const groupId = req.params.id;
     const groupByToken = req.groupId;
-    console.log(groupByToken)
+    // console.log(groupByToken)
     if(groupByToken == groupId) {
         try {
             const [users] = await Db.promise().query('SELECT us_id, us_name, us_email, us_mobile FROM tbl_user WHERE us_grp_id = ?',[groupId])

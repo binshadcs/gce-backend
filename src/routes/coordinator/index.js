@@ -1,10 +1,14 @@
 const { Router } = require('express');
 const { Db } = require('../../config/db');
-const { hashPassword, comparePassword } = require('../util');
-const { CreateGroup, CoordinatorLogin, CoordinatorSpecific } = require('../../types');
+const { hashPassword, comparePassword, randomImageName } = require('../util');
+const { CreateGroup, CoordinatorLogin, CoordinatorSpecific, ImageFileValidate } = require('../../types');
 const jwt = require('jsonwebtoken');
 const { JwtScret } = require('../../config/config');
 const { coordinatorAuth } = require('../../middleware/coordinator');
+const { uploadMulter } = require('../../config/fileMulter');
+const sharp = require('sharp');
+const { PutObjectCommand } = require('@aws-sdk/client-s3');
+const { bucketName } = require('../../config/bucket');
 
 const router = Router()
 
@@ -36,7 +40,7 @@ router.get('/all', async(req, res)=> {
     }
 }) 
 
-router.post('/register', async(req, res)=> {
+router.post('/register', uploadMulter.single('userPhoto'), async(req, res)=> {
     const { categoryId,
             name,
             location,
@@ -50,73 +54,95 @@ router.post('/register', async(req, res)=> {
             username,
             password
      } = req.body;
-
-    const result = CreateGroup.safeParse({ categoryId,
-        name,
-        location,
-        coordinator_name,
-        whatsapp_number,
-        profession,
-        country,
-        state,
-        district,
-        lsg,
-        username,
-        password
-    })
-    if(result.success) {
-        const hashedPassword = await hashPassword(password)
-        try {
-            let [{insertId}] = await Db.promise().query('INSERT INTO tbl_group_coordinators (gp_id, co_ord_name, co_ord_contact, co_profession, co_username, co_password) VALUES(?, ?, ?, ?, ?, ?)',[-1,
-                coordinator_name,
-                whatsapp_number,
-                profession,
-                username,
-                hashedPassword])
-            // console.log(test)
-            const group_coordinator_id = insertId;
+     if(req.file !== undefined) {
+        const type = req.file.mimetype;
+        const size = req.file.size;
+        const resultImage = ImageFileValidate.safeParse({type, size})
+        const result = CreateGroup.safeParse({ categoryId,
+            name,
+            location,
+            coordinator_name,
+            whatsapp_number,
+            profession,
+            country,
+            state,
+            district,
+            lsg,
+            username,
+            password
+        })
+        const buffer = await sharp(req.file.buffer).resize(600).toBuffer()
+        let generatedImageName = randomImageName()
+        const command = new PutObjectCommand({
+            Bucket : bucketName,
+            Key : generatedImageName,
+            Body : buffer,
+            ContentType : req.file.mimetype
+        })
+        if(result.success && resultImage.success) {
+            const hashedPassword = await hashPassword(password)
             try {
-                [{insertId}] = await Db.promise().query('INSERT INTO tbl_group_code (gp_name, gp_code, gp_cat_id, dis_id, lsg_id, gp_coord_id, gp_location, gp_country_id, gp_state_id) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)',[name,
-                    name,
-                    categoryId,
-                    district,
-                    lsg,
-                    group_coordinator_id,
-                    location,
-                    country,
-                    state
-                    ])
-                const group_id = insertId;
+                await s3.send(command);
+                let [{insertId}] = await Db.promise().query('INSERT INTO tbl_group_coordinators (gp_id, co_ord_name, co_ord_contact, co_profession, co_username, co_password, ) VALUES(?, ?, ?, ?, ?, ?, ?)',[-1,
+                    coordinator_name,
+                    whatsapp_number,
+                    profession,
+                    username,
+                    hashedPassword,
+                    generatedImageName
+                ])
+                // console.log(test)
+                const group_coordinator_id = insertId;
                 try {
-                    [{insertId}] = await Db.promise().query('UPDATE tbl_group_coordinators SET gp_id = ? WHERE co_ord_id = ?',[group_id, group_coordinator_id]); 
-                    res.status(200).json({
-                        group_id,
-                        coordinator_id : group_coordinator_id
-                    })
+                    [{insertId}] = await Db.promise().query('INSERT INTO tbl_group_code (gp_name, gp_code, gp_cat_id, dis_id, lsg_id, gp_coord_id, gp_location, gp_country_id, gp_state_id) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)',[name,
+                        name,
+                        categoryId,
+                        district,
+                        lsg,
+                        group_coordinator_id,
+                        location,
+                        country,
+                        state
+                        ])
+                    const group_id = insertId;
+                    try {
+                        [{insertId}] = await Db.promise().query('UPDATE tbl_group_coordinators SET gp_id = ? WHERE co_ord_id = ?',[group_id, group_coordinator_id]); 
+                        res.status(200).json({
+                            group_id,
+                            coordinator_id : group_coordinator_id
+                        })
+                    } catch (error) {
+                        console.log(error)
+                        res.status(404).json({
+                            message : "can't insert data"
+                        })
+                    }  
+    
                 } catch (error) {
                     console.log(error)
                     res.status(404).json({
                         message : "can't insert data"
                     })
-                }  
-
+                } 
             } catch (error) {
                 console.log(error)
                 res.status(404).json({
                     message : "can't insert data"
                 })
             } 
-        } catch (error) {
-            console.log(error)
-            res.status(404).json({
-                message : "can't insert data"
+        } else {
+            console.log(result.error.message)
+            // console.log(resultImage.error.message)
+            res.status(400).json({
+                message : "Invalid input"
             })
-        } 
-    } else {
+        }
+     } else {
         res.status(400).json({
-            message : "Invalid input"
+            message : "Please upload photo"
         })
-    }
+     }
+    
 });
 
 router.post('/login', async(req, res)=> {

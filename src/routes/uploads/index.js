@@ -56,39 +56,57 @@ router.get('/me', userAuth, async(req, res)=> {
 });
 
 router.post('/new', userAuth, uploadMulter.single('image'), async(req, res)=> {
-    const { name, planterName, treeName, image } = req.body;
+    const { name, planterName, treeName } = req.body;
     const userId = req.userId;
     const groupId = req.userGrpId;
-    const result = CreateUploads.safeParse({
-        userId,
-        name,
-        planterName,
-        treeName,
-        image,
-        groupId
-    })
-    if(result.success) {
-        try {
-            let [{insertId}] = await Db.promise().query('INSERT INTO tbl_uploads (up_reg_id, up_name, up_planter, up_tree_name, up_group_id, up_file ) VALUES(?, ?, ?, ?, ?, ?)',[userId,
-                name,
-                planterName,
-                treeName,
-                groupId,
-                image    
-            ])
-            res.status(200).json({
-                uploadsId : insertId
-            })
-        } catch (error) {
-            res.status(400).json({
-                message : "can't insert uploads"
+    if(req.file !== undefined) {
+        const type = req.file.mimetype;
+        const size = req.file.size;
+        const resultImage = ImageFileValidate.safeParse({type, size})
+        const result = CreateUploads.safeParse({
+            userId,
+            name,
+            planterName,
+            treeName,
+            groupId
+        })
+        const buffer = await sharp(req.file.buffer).resize(600).toBuffer()
+        let generatedImageName = randomImageName()
+        const command = new PutObjectCommand({
+            Bucket : bucketName,
+            Key : generatedImageName,
+            Body : buffer,
+            ContentType : req.file.mimetype
+        })
+        if(result.success && resultImage.success) {
+            try {
+                await s3.send(command);
+                let [{insertId}] = await Db.promise().query('INSERT INTO tbl_uploads (up_reg_id, up_name, up_planter, up_tree_name, up_group_id, up_file ) VALUES(?, ?, ?, ?, ?, ?)',[userId,
+                    name,
+                    planterName,
+                    treeName,
+                    groupId,
+                    generatedImageName    
+                ])
+                res.status(200).json({
+                    uploadsId : insertId
+                })
+            } catch (error) {
+                res.status(400).json({
+                    message : "can't insert uploads"
+                })
+            }
+        } else {
+            res.state(403).json({
+                message : "Invalid data"
             })
         }
     } else {
-        res.state(403).json({
-            message : "Invalid data"
+        res.status(400).json({
+            message : "Please upload photo"
         })
     }
+    
 });
 
 router.post('/test', uploadMulter.single('imageFile'), async(req, res) => {
