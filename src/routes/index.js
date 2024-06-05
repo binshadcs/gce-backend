@@ -171,4 +171,11 @@ router.get("/clubs", async(req, res) => {
     } 
 })
 
+router.get("/logout", async(req, res) => {
+    res.clearCookie('token')
+    res.status(200).json({
+        message : " User logout"
+    }) 
+})
+
 module.exports = router;
