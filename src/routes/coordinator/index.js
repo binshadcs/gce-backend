@@ -144,7 +144,8 @@ router.post('/login', async(req, res)=> {
                         data : {
                             id: value[0].co_ord_id,
                             groupId : value[0].gp_id,
-                            roleId : 2 
+                            roleId : 2,
+                            token 
                         }
                     })
                 } else {
@@ -175,7 +176,7 @@ router.post('/:id', coordinatorAuth, async(req, res)=> {
     // const result = CoordinatorSpecific.safeParse( "tss" )
     // console.log(result)
     try {
-        const [coordinator] = await Db.promise().query('SELECT co_ord_id, gp_id, co_ord_name, co_ord_contact, co_profession, co_refferel_code from tbl_group_coordinators where co_ord_id = ?',[coordinator_id]);
+        const [coordinator] = await Db.promise().query('SELECT co_ord_id, gp_id, co_ord_name, co_ord_contact, co_profession, co_refferel_code  from tbl_group_coordinators where co_ord_id = ?',[coordinator_id]);
         console.log(coordinator)
         if(coordinator.length > 0) {
             res.status(404).json({

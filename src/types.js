@@ -103,6 +103,18 @@ const CreateActivity = zod.object({
 })
 
 
+const maxFileSize = 5 * 1024 * 1024; // 5 MB in bytes
+const validMimeTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+
+const ImageFileValidate = zod.object({
+    type: zod.enum(validMimeTypes, {
+        invalid_type_error: 'Invalid file type. Only jpeg, jpg, png, and webp are allowed.',
+    }), 
+    size: zod.number().max(maxFileSize, {
+    message: 'File size must be less than or equal to 5 MB.',
+    })
+});
+
 module.exports = {
     CreateGroup,
     CreateNGO,
@@ -114,5 +126,6 @@ module.exports = {
     CreateUser,
     LoginUser,
     CreateUploads,
-    CreateActivity
+    CreateActivity,
+    ImageFileValidate
 }

@@ -94,7 +94,8 @@ router.post('/login', async(req, res)=> {
                     data : {
                         id: value.us_id,
                         groupId : value.us_grp_id,
-                        roleId : value.us_role 
+                        roleId : value.us_role,
+                        token 
                     }
                 })
             } else {

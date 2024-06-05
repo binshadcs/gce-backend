@@ -1,7 +1,9 @@
 const { Router } = require('express');
 const { userAuth } = require('../../middleware/user');
-const { CreateUploads } = require('../../types');
+const { CreateUploads, ImageFileValidate } = require('../../types');
 const { Db } = require('../../config/db');
+const { uploadMulter } = require('../../config/fileMulter');
+
 const router = Router()
 
 router.get('/', (req, res)=> {
@@ -84,5 +86,31 @@ router.post('/new', userAuth, async(req, res)=> {
         })
     }
 });
+
+router.post('/test', uploadMulter.single('imageFile'), (req, res) => {
+    console.log(req.file)
+    
+    if(req.file !== undefined) {
+        console.log(req.body);
+        const type = req.file.mimetype;
+        const size = req.file.size;
+        const result = ImageFileValidate.safeParse({type, size})
+        console.log(result)
+        if(result.success) {
+            res.status(200).json({
+                message : "test route workig......!"
+            })
+        } else {
+            res.status(200).json({
+                message : "Invalid data"
+            })
+        }
+    } else {
+        res.status(400).json({
+            message : " Invalid file"
+        })
+    }
+    
+})
 
 module.exports = router;
