@@ -9,9 +9,9 @@ const CreateGroup = zod.object({
     whatsapp_number : zod.string(),
     profession : zod.string(),
     country : zod.string(),
-    state : zod.number(),
-    district : zod.number(),
-    lsg : zod.number(),
+    state : zod.string(),
+    district : zod.string(),
+    lsg : zod.string(),
     username : zod.string(),
     password : zod.string().min(8)
 })
@@ -91,13 +91,12 @@ const CreateUploads = zod.object({
 
 const CreateActivity = zod.object({
     userId : zod.number(),
-    category : zod.number(),
+    category : zod.string(),
     subCategory : zod.string(),
     name : zod.string(),
     address : zod.string(),
     activityTitle : zod.string(),
-    socialMediaLink : zod.string(),
-    activityThumbnail : zod.string()
+    socialMediaLink : zod.string()
 })
 
 

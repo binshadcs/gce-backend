@@ -8,7 +8,7 @@ const { coordinatorAuth } = require('../../middleware/coordinator');
 const { uploadMulter } = require('../../config/fileMulter');
 const sharp = require('sharp');
 const { PutObjectCommand } = require('@aws-sdk/client-s3');
-const { bucketName } = require('../../config/bucket');
+const { bucketName, s3 } = require('../../config/bucket');
 
 const router = Router()
 
@@ -83,7 +83,7 @@ router.post('/register', uploadMulter.single('userPhoto'), async(req, res)=> {
             const hashedPassword = await hashPassword(password)
             try {
                 await s3.send(command);
-                let [{insertId}] = await Db.promise().query('INSERT INTO tbl_group_coordinators (gp_id, co_ord_name, co_ord_contact, co_profession, co_username, co_password, ) VALUES(?, ?, ?, ?, ?, ?, ?)',[-1,
+                let [{insertId}] = await Db.promise().query('INSERT INTO tbl_group_coordinators (gp_id, co_ord_name, co_ord_contact, co_profession, co_username, co_password,co_ord_photo ) VALUES(?, ?, ?, ?, ?, ?, ?)',[-1,
                     coordinator_name,
                     whatsapp_number,
                     profession,
@@ -125,6 +125,7 @@ router.post('/register', uploadMulter.single('userPhoto'), async(req, res)=> {
                     })
                 } 
             } catch (error) {
+                console.log(error)
                 console.log(error)
                 res.status(404).json({
                     message : "can't insert data"
