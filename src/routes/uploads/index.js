@@ -55,7 +55,7 @@ router.get('/me', userAuth, async(req, res)=> {
     } 
 });
 
-router.post('/new', userAuth, async(req, res)=> {
+router.post('/new', userAuth, uploadMulter.single('image'), async(req, res)=> {
     const { name, planterName, treeName, image } = req.body;
     const userId = req.userId;
     const groupId = req.userGrpId;
@@ -118,7 +118,7 @@ router.post('/test', uploadMulter.single('imageFile'), async(req, res) => {
         }
     } else {
         res.status(400).json({
-            message : " Invalid file"
+            message : "Please upload photo"
         })
     }
     

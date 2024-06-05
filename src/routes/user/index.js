@@ -1,10 +1,15 @@
 const { Router } = require('express');
-const { CreateUser, LoginUser } = require('../../types');
+const { CreateUser, LoginUser, ImageFileValidate } = require('../../types');
 const { Db } = require('../../config/db');
 const { JwtScret } = require('../../config/config');
 const jwt = require('jsonwebtoken');
 const { userAuth } = require('../../middleware/user');
 const { coordinatorAuth } = require('../../middleware/coordinator');
+const { uploadMulter } = require('../../config/fileMulter');
+const sharp = require('sharp');
+const { PutObjectCommand } = require('@aws-sdk/client-s3');
+const { randomImageName } = require('../util');
+const { bucketName, s3 } = require('../../config/bucket');
 
 const router = Router()
 
@@ -14,13 +19,12 @@ router.get('/', (req, res)=> {
     })
 }) 
 
-router.post('/:id/register', async(req, res)=> {
+router.post('/:id/register',uploadMulter.single('userPhoto'), async(req, res)=> {
     const groupId = Number(req.params.id);
     console.log(groupId)
     const { 
         name,
         email,
-        userPhoto,
         profileDescription,
         mobileNumber,
         countryId,
@@ -31,50 +35,71 @@ router.post('/:id/register', async(req, res)=> {
         referalCode
      } = req.body;
     //  console.log(req.body)
-
-    const result = CreateUser.safeParse({ groupId,
-            name,
-            email,
-            userPhoto,
-            profileDescription,
-            mobileNumber,
-            countryId,
-            stateId,
-            address ,
-            gender ,
-            password,
-            referalCode
-    });
-    if(result.success) {
-        try {
-            let [{insertId}] = await Db.promise().query('INSERT INTO tbl_user (us_name, us_photo, us_profile_description, us_email, us_mobile, us_address, us_gender, us_password, us_role, us_cntry_id, us_state_id, us_grp_id) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',[name,
-                userPhoto,
-                profileDescription,
+     if(req.file !== undefined) {
+        //  console.log(req.file)
+        const type = req.file.mimetype;
+        const size = req.file.size;
+        const resultImage = ImageFileValidate.safeParse({type, size})
+        const result = CreateUser.safeParse({ groupId,
+                name,
                 email,
+                // userPhoto,
+                profileDescription,
                 mobileNumber,
-                address,
-                gender,
-                password,
-                1,
                 countryId,
                 stateId,
-                groupId     
-            ])
-            res.status(200).json({
-                userId : insertId,
-                message : "user created successfully"
+                address ,
+                gender ,
+                password,
+                referalCode
+        });
+        const buffer = await sharp(req.file.buffer).resize(600).toBuffer()
+        let generatedImageName = randomImageName()
+        const command = new PutObjectCommand({
+            Bucket : bucketName,
+            Key : generatedImageName,
+            Body : buffer,
+            ContentType : req.file.mimetype
+        })
+        // console.log(result.error.message)
+        if(result.success && resultImage.success) {
+            try {
+                await s3.send(command);
+                let [{insertId}] = await Db.promise().query('INSERT INTO tbl_user (us_name, us_photo, us_profile_description, us_email, us_mobile, us_address, us_gender, us_password, us_role, us_cntry_id, us_state_id, us_grp_id) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',[name,
+                    generatedImageName,
+                    profileDescription,
+                    email,
+                    mobileNumber,
+                    address,
+                    gender,
+                    password,
+                    1,
+                    countryId,
+                    stateId,
+                    groupId     
+                ])
+                res.status(200).json({
+                    userId : insertId,
+                    message : "user created successfully"
+                })
+            } catch (error) {
+                console.log(error)
+                res.status(404).json({
+                    message : "can't insert user data"
+                })
+            } 
+        } else {
+            console.log(result.error.message)
+            res.status(400).json({
+                message : "Invalid data or image"
             })
-        } catch (error) {
-            // console.log(error)
-            res.status(404).json({
-                message : "can't insert user data"
-            })
-        } 
+    }
     } else {
         res.status(400).json({
-            message : result.error
+            message : "Please upload photo"
         })
     }
+    
 });
 
 router.post('/login', async(req, res)=> {

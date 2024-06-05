@@ -6,6 +6,7 @@ const groupRoute = require('./group/index');
 const uploadRoute = require('./uploads/index');
 const userRoute = require('./user/index');
 const { Db } = require('../config/db');
+const sharp = require('sharp');
 
 const router = Router()
 
@@ -146,6 +147,26 @@ router.get("/activity_sub_category", async(req, res) => {
     } catch (error) {
         res.status(404).json({
             message : "can't fetch activity sub category"
+        })
+    } 
+})
+
+router.get("/clubs", async(req, res) => {
+    try {
+        const [clubs] = await Db.promise().query('SELECT * FROM tbl_clubs')
+        if(clubs) {
+            res.status(200).json({
+                clubs
+            })
+        } else {
+            res.status(400).json({
+                message : "clubs not found"
+            })
+        }
+    } catch (error) {
+        console.log(error)
+        res.status(404).json({
+            message : "can't fetch clubs"
         })
     } 
 })
