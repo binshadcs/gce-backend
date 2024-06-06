@@ -16,7 +16,7 @@ router.get('/', (req, res)=> {
     })
 }) 
 
-router.get('/all', userAuth, async(req, res)=> {
+router.get('/all', async(req, res)=> {
     try {
         const [Uploads] = await Db.promise().query('SELECT up_id,up_name,up_planter,up_tree_name,up_group_id,up_date,up_file FROM tbl_uploads limit 20')
         if(Uploads.length !==0) {

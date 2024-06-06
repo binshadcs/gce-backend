@@ -3,9 +3,12 @@ const jwt = require('jsonwebtoken');
 
 async function userAuth(req, res, next) {
    const { cookies } = req;
-    if(cookies.token) {
+   const { authorization } = req.headers;
+    const word = authorization.split(" ");
+    // if(cookies.token) {
         try {
-            const result = jwt.verify(cookies.token, JwtScret)
+            // const result = jwt.verify(cookies.token, JwtScret)
+            const result = jwt.verify(word[1], JwtScret)
             if(result.roleId === 1) {
                req.userId = result.id
                req.userGrpId = result.groupId
@@ -21,11 +24,11 @@ async function userAuth(req, res, next) {
             })
         }
         
-    } else {
-        res.status(404).json({
-            message : "Invalid token"
-        })
-    } 
+    // } else {
+    //     res.status(404).json({
+    //         message : "Invalid token"
+    //     })
+    // } 
 }
 
 module.exports = {userAuth}
