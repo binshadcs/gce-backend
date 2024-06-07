@@ -92,6 +92,7 @@ router.post('/new', userAuth, uploadMulter.single('image'), async(req, res)=> {
                     uploadsId : insertId
                 })
             } catch (error) {
+                console.log(error)
                 res.status(400).json({
                     message : "can't insert uploads"
                 })
