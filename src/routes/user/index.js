@@ -95,9 +95,38 @@ router.post('/:id/register',uploadMulter.single('userPhoto'), async(req, res)=> 
             })
     }
     } else {
-        res.status(400).json({
-            message : "Please upload photo"
-        })
+        const defaultImage = 'profile.png'
+        if(result.success) {
+            try {
+                let [{insertId}] = await Db.promise().query('INSERT INTO tbl_user (us_name, us_photo, us_profile_description, us_email, us_mobile, us_address, us_gender, us_password, us_role, us_cntry_id, us_state_id, us_grp_id) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',[name,
+                    defaultImage,
+                    profileDescription,
+                    email,
+                    mobileNumber,
+                    address,
+                    gender,
+                    password,
+                    1,
+                    countryId,
+                    stateId,
+                    groupId     
+                ])
+                res.status(200).json({
+                    userId : insertId,
+                    message : "user created successfully"
+                })
+            } catch (error) {
+                console.log(error)
+                res.status(404).json({
+                    message : "can't insert user data"
+                })
+            } 
+        } else {
+            console.log(result.error.message)
+            res.status(400).json({
+                message : "Invalid data or image"
+            })
+    }
     }
     
 });

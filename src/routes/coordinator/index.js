@@ -125,23 +125,81 @@ router.post('/register', uploadMulter.single('userPhoto'), async(req, res)=> {
                     })
                 } 
             } catch (error) {
-                console.log(error)
-                console.log(error)
+                // console.log(error)
+                // console.log(error)
                 res.status(404).json({
                     message : "can't insert data"
                 })
             } 
         } else {
-            console.log(result.error.message)
+            // console.log(result.error.message)
             // console.log(resultImage.error.message)
             res.status(400).json({
                 message : "Invalid input"
             })
         }
      } else {
-        res.status(400).json({
-            message : "Please upload photo"
-        })
+        // What if user don't have an image
+        const defaultImage = 'profile.png'
+        if(result.success) {
+            const hashedPassword = await hashPassword(password)
+            try {
+                // await s3.send(command);
+                let [{insertId}] = await Db.promise().query('INSERT INTO tbl_group_coordinators (gp_id, co_ord_name, co_ord_contact, co_profession, co_username, co_password,co_ord_photo ) VALUES(?, ?, ?, ?, ?, ?, ?)',[-1,
+                    coordinator_name,
+                    whatsapp_number,
+                    profession,
+                    username,
+                    hashedPassword,
+                    defaultImage
+                ])
+                // console.log(test)
+                const group_coordinator_id = insertId;
+                try {
+                    [{insertId}] = await Db.promise().query('INSERT INTO tbl_group_code (gp_name, gp_code, gp_cat_id, dis_id, lsg_id, gp_coord_id, gp_location, gp_country_id, gp_state_id) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)',[name,
+                        name,
+                        categoryId,
+                        district,
+                        lsg,
+                        group_coordinator_id,
+                        location,
+                        country,
+                        state
+                        ])
+                    const group_id = insertId;
+                    try {
+                        [{insertId}] = await Db.promise().query('UPDATE tbl_group_coordinators SET gp_id = ? WHERE co_ord_id = ?',[group_id, group_coordinator_id]); 
+                        res.status(200).json({
+                            group_id,
+                            coordinator_id : group_coordinator_id
+                        })
+                    } catch (error) {
+                        console.log(error)
+                        res.status(404).json({
+                            message : "can't insert data"
+                        })
+                    }  
+    
+                } catch (error) {
+                    console.log(error)
+                    res.status(404).json({
+                        message : "can't insert data"
+                    })
+                } 
+            } catch (error) {
+                // console.log(error)
+                // console.log(error)
+                res.status(404).json({
+                    message : "can't insert data"
+                })
+            } 
+        } else {
+            // console.log(result.error.message)
+            // console.log(resultImage.error.message)
+            res.status(400).json({
+                message : "Invalid input"
+            })
+        } 
      }
     
 });
