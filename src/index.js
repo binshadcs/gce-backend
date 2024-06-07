@@ -24,7 +24,7 @@ app.get("/status", (req, res) => {
         } else {
             res.status(200).json({ msg : "server is up and Database conected!" });
         }
-    Db.end()
+    // Db.end()
     })
 	
 });

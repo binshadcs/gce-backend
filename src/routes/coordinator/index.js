@@ -21,7 +21,7 @@ router.get('/', (req, res)=> {
 router.get('/all', async(req, res)=> {
     try {
         const [coordinators] = await Db.promise().query('select * from tbl_group_coordinators')
-        console.log(coordinators)
+        // console.log(coordinators)
         if(coordinators.length > 0) {
             res.status(404).json({
                 coordinators
