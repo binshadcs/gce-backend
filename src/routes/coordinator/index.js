@@ -54,23 +54,23 @@ router.post('/register', uploadMulter.single('userPhoto'), async(req, res)=> {
             username,
             password
      } = req.body;
+     const result = CreateGroup.safeParse({ categoryId,
+        name,
+        location,
+        coordinator_name,
+        whatsapp_number,
+        profession,
+        country,
+        state,
+        district,
+        lsg,
+        username,
+        password
+    })
      if(req.file !== undefined) {
         const type = req.file.mimetype;
         const size = req.file.size;
         const resultImage = ImageFileValidate.safeParse({type, size})
-        const result = CreateGroup.safeParse({ categoryId,
-            name,
-            location,
-            coordinator_name,
-            whatsapp_number,
-            profession,
-            country,
-            state,
-            district,
-            lsg,
-            username,
-            password
-        })
         const buffer = await sharp(req.file.buffer).resize(600).toBuffer()
         let generatedImageName = randomImageName()
         const command = new PutObjectCommand({
