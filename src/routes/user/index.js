@@ -34,25 +34,26 @@ router.post('/:id/register',uploadMulter.single('userPhoto'), async(req, res)=> 
         password,
         referalCode
      } = req.body;
+     const result = CreateUser.safeParse({ groupId,
+        name,
+        email,
+        // userPhoto,
+        profileDescription,
+        mobileNumber,
+        countryId,
+        stateId,
+        address ,
+        gender ,
+        password,
+        referalCode
+});
     //  console.log(req.body)
      if(req.file !== undefined) {
         //  console.log(req.file)
         const type = req.file.mimetype;
         const size = req.file.size;
         const resultImage = ImageFileValidate.safeParse({type, size})
-        const result = CreateUser.safeParse({ groupId,
-                name,
-                email,
-                // userPhoto,
-                profileDescription,
-                mobileNumber,
-                countryId,
-                stateId,
-                address ,
-                gender ,
-                password,
-                referalCode
-        });
+        
         const buffer = await sharp(req.file.buffer).resize(600).toBuffer()
         let generatedImageName = randomImageName()
         const command = new PutObjectCommand({
