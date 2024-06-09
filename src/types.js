@@ -71,7 +71,7 @@ const CreateResidence = zod.object({
 const CreateUser = zod.object({
     groupId : zod.number(),
     name : zod.string(),
-    email : zod.string().email(),
+    email : zod.string().email().optional(),
     profileDescription : zod.string().optional(),
     mobileNumber : zod.string(),
     countryId : zod.number(),
