@@ -9,9 +9,11 @@ const CreateGroup = zod.object({
     whatsapp_number : zod.string(),
     profession : zod.string(),
     country : zod.string(),
-    state : zod.string(),
-    district : zod.string(),
-    lsg : zod.string(),
+    state : zod.string().optional(),
+    district : zod.string().optional(),
+    lsg : zod.string().optional(),
+    city : zod.string().optional(),
+    province : zod.string().optional(),
     username : zod.string(),
     password : zod.string().min(8)
 })
@@ -44,9 +46,11 @@ const CreatePromoter = zod.object({
     groupId : zod.number(),
     cityName : zod.string(),
     countryId : zod.number(),
-    stateId : zod.number(),
-    districtId : zod.number(),
-    lsgdId : zod.number(),
+    stateId : zod.number().optional(),
+    districtId : zod.number().optional(),
+    lsgdId : zod.number().optional(),
+    city : zod.string().optional(),
+    province : zod.string().optional(),
     totalNoOfMembers : zod.number(),
     categoryIdPromoting : zod.number()
 })
@@ -55,9 +59,11 @@ const CreatePromoter = zod.object({
 const CreateResidence = zod.object({
     groupId : zod.number(),
     countryId : zod.number(),
-    stateId : zod.number(),
-    districtId : zod.number(),
-    lsgdId : zod.number(),
+    stateId : zod.number().optional(),
+    districtId : zod.number().optional(),
+    lsgdId : zod.number().optional(),
+    city : zod.string().optional(),
+    province : zod.string().optional(),
     totalNoOfMembers : zod.number()
 })
 
@@ -69,7 +75,9 @@ const CreateUser = zod.object({
     profileDescription : zod.string().optional(),
     mobileNumber : zod.string(),
     countryId : zod.string(),
-    stateId : zod.string(),
+    stateId : zod.string().optional(),
+    city : zod.string().optional(),
+    province : zod.string().optional(),
     address : zod.string(),
     gender : zod.string(),
     password : zod.string(),

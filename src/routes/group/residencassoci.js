@@ -15,22 +15,29 @@ router.post('/register', async(req, res) => {
         stateId,
         districtId,
         lsgdId,
-        totalNoOfMembers
+        totalNoOfMembers,
+        city,
+        province
         } = req.body;
     const result = CreateResidence.safeParse({ groupId,
         countryId,
         stateId,
         districtId,
         lsgdId,
-        totalNoOfMembers })
+        totalNoOfMembers,
+        city,
+        province 
+    })
     if(result.success) {
         try {
-            const [{insertId}] = await Db.promise().query('INSERT INTO tbl_residence_association (group_id, no_of_members, country_id, state_id, district_id, lsgd_id) VALUES(?,?,?,?,?,?)', [groupId,
+            const [{insertId}] = await Db.promise().query('INSERT INTO tbl_residence_association (group_id, no_of_members, country_id, state_id, district_id, lsgd_id, city, province) VALUES(?,?,?,?,?,?, ?, ?)', [groupId,
                 totalNoOfMembers,
                 countryId,
                 stateId,
                 districtId,
                 lsgdId,
+                city,
+                province
             ])
             
             res.status(200).json({

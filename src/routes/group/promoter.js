@@ -17,7 +17,9 @@ router.post('/register', async(req, res) => {
         districtId,
         lsgdId,
         totalNoOfMembers,
-        categoryIdPromoting
+        categoryIdPromoting,
+        city,
+        province
         } = req.body;
     const result = CreatePromoter.safeParse({ groupId,
         cityName,
@@ -26,17 +28,22 @@ router.post('/register', async(req, res) => {
         districtId,
         lsgdId,
         totalNoOfMembers,
-        categoryIdPromoting })
+        categoryIdPromoting,
+        city,
+        province })
     if(result.success) {
         try {
-            const [{insertId}] = await Db.promise().query('INSERT INTO tbl_promoters (group_id, city_name, country_id, state_id, lsgd_id, total_members, category_id_promoting) VALUES(?,?,?,?,?,?, ?)', [groupId,
+            const [{insertId}] = await Db.promise().query('INSERT INTO tbl_promoters (group_id, city_name, country_id, state_id, lsgd_id, total_members, category_id_promoting, city, province) VALUES(?,?,?,?,?,?, ?, ?, ?)', [groupId,
                 cityName,
                 countryId,
                 stateId,
                 districtId,
                 lsgdId,
                 totalNoOfMembers,
-                categoryIdPromoting])
+                categoryIdPromoting,
+                city,
+                province
+            ])
             
             res.status(200).json({
                 promotersId : insertId
