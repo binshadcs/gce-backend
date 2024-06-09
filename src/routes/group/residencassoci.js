@@ -30,7 +30,8 @@ router.post('/register', async(req, res) => {
     })
     if(result.success) {
         try {
-            const [{insertId}] = await Db.promise().query('INSERT INTO tbl_residence_association (group_id, no_of_members, country_id, state_id, district_id, lsgd_id, city, province) VALUES(?,?,?,?,?,?, ?, ?)', [groupId,
+            const [{insertId}] = await Db.promise().query('INSERT INTO tbl_residence_association (group_id, no_of_members, country_id, state_id, district_id, lsgd_id, city, province) VALUES(?,?,?,?,?,?, ?, ?)',
+                 [groupId,
                 totalNoOfMembers,
                 countryId,
                 stateId,

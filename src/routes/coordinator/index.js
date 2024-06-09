@@ -56,6 +56,7 @@ router.post('/register', uploadMulter.single('userPhoto'), async(req, res)=> {
             city,
             province
      } = req.body;
+    //  console.log(req.body);
      const result = CreateGroup.safeParse({ categoryId,
         name,
         location,
@@ -71,6 +72,7 @@ router.post('/register', uploadMulter.single('userPhoto'), async(req, res)=> {
         city,
         province
     })
+    console.log(result)
      if(req.file !== undefined) {
         const type = req.file.mimetype;
         const size = req.file.size;
@@ -149,9 +151,13 @@ router.post('/register', uploadMulter.single('userPhoto'), async(req, res)=> {
         const defaultImage = 'profile.png'
         if(result.success) {
             const hashedPassword = await hashPassword(password)
+            console.log('here')
             try {
                 // await s3.send(command);
-                let [{insertId}] = await Db.promise().query('INSERT INTO tbl_group_coordinators (gp_id, co_ord_name, co_ord_contact, co_profession, co_username, co_password,co_ord_photo ) VALUES(?, ?, ?, ?, ?, ?, ?)',[-1,
+                console.log('insertId')
+                let [{insertId}] = await Db.promise().query(
+                    'INSERT INTO tbl_group_coordinators (gp_id, co_ord_name, co_ord_contact, co_profession, co_username, co_password,co_ord_photo ) VALUES(?, ?, ?, ?, ?, ?, ?)',
+                    [-1,
                     coordinator_name,
                     whatsapp_number,
                     profession,
@@ -159,7 +165,7 @@ router.post('/register', uploadMulter.single('userPhoto'), async(req, res)=> {
                     hashedPassword,
                     defaultImage
                 ])
-                // console.log(test)
+                console.log(insertId)
                 const group_coordinator_id = insertId;
                 try {
                     [{insertId}] = await Db.promise().query('INSERT INTO tbl_group_code (gp_name, gp_code, gp_cat_id, dis_id, lsg_id, gp_coord_id, gp_location, gp_country_id, gp_state_id, gp_city, gp_province) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',[name,

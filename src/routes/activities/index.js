@@ -13,7 +13,7 @@ router.get('/all', userAuth, async(req, res)=> {
     try {
         const [activity] = await Db.promise().query('SELECT personal_activity_id,login_id, participant_name,activity_category_id, activity_title, activity_description, activity_social_media_link, activity_thumbnail,activity_likes, activity_views, activity_value,activity_on  FROM tbl_personal_activities')
         if(activity.length > 0) {
-            res.status(404).json({
+            res.status(200).json({
                 activity
             })
         } else {
@@ -29,14 +29,16 @@ router.get('/all', userAuth, async(req, res)=> {
 });
 
 router.post("/new", userAuth, uploadMulter.single('activityThumbnail'), async(req, res) => {
-    const { name, category, subCategory, address, activityTitle, socialMediaLink } = req.body;
+    let { name, category, subCategory, address, socialMediaLink, activityTitle } = await req.body;
     const userId = req.userId;
+    category = parseInt(category)
     // activityThumbnail
     if(req.file !== undefined) {
         const type = req.file.mimetype;
         const size = req.file.size;
         const resultImage = ImageFileValidate.safeParse({type, size})
-        const result = CreateActivity.safeParse({userId, name, category, subCategory, address, activityTitle, socialMediaLink})
+        const result = CreateActivity.safeParse({userId, name, category, subCategory, address, activityTitle, socialMediaLink, activityThumbnail : req.file.originalname})
+        
         const buffer = await sharp(req.file.buffer).resize(1000).toBuffer()
         let generatedImageName = randomImageName()
         const command = new PutObjectCommand({
@@ -45,6 +47,7 @@ router.post("/new", userAuth, uploadMulter.single('activityThumbnail'), async(re
             Body : buffer,
             ContentType : req.file.mimetype
         })
+
         if(result.success && resultImage.success) {
             try {
                 await s3.send(command);
@@ -55,7 +58,7 @@ router.post("/new", userAuth, uploadMulter.single('activityThumbnail'), async(re
                     address,
                     activityTitle,
                     socialMediaLink,
-                    generatedImageName   
+                    generatedImageName
                 ])
                 res.status(200).json({
                     activityId : insertId

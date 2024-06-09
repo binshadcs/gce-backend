@@ -21,7 +21,7 @@ router.get('/', (req, res)=> {
 
 router.post('/:id/register',uploadMulter.single('userPhoto'), async(req, res)=> {
     const groupId = Number(req.params.id);
-    // console.log(groupId)
+    console.log(groupId)
     const { 
         name,
         email,
