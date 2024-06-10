@@ -11,5 +11,8 @@ const { Host, Username, Password, Database, Port, DbUrl } = require('./config');
 // });
 
 const Db = mysql.createConnection(DbUrl)
+if (Db){
+    console.log("Database connected!");
+}
 
 module.exports = { Db }
