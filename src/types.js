@@ -13,6 +13,7 @@ const CreateGroup = zod.object({
     district : zod.number().optional(),
     lsg : zod.number().optional(),
     city : zod.string().optional(),
+    corporation : zod.string().optional(),
     province : zod.string().optional(),
     username : zod.string(),
     password : zod.string().min(8)
@@ -78,6 +79,7 @@ const CreateUser = zod.object({
     stateId : zod.string().optional(),
     city : zod.string().optional(),
     province : zod.string().optional(),
+    corporation : zod.string().optional(),
     address : zod.string(),
     gender : zod.string(),
     password : zod.string(),

@@ -34,7 +34,8 @@ router.post('/:id/register',uploadMulter.single('userPhoto'), async(req, res)=> 
         password,
         referalCode,
         city,
-        province
+        province,
+        corporation
      } = req.body;
      const result = CreateUser.safeParse({ groupId,
         name,
@@ -49,7 +50,8 @@ router.post('/:id/register',uploadMulter.single('userPhoto'), async(req, res)=> 
         password,
         referalCode,
         city,
-        province
+        province,
+        corporation
 });
     //  console.log(req.body)
      if(req.file !== undefined) {
@@ -70,7 +72,7 @@ router.post('/:id/register',uploadMulter.single('userPhoto'), async(req, res)=> 
         if(result.success && resultImage.success) {
             try {
                 await s3.send(command);
-                let [{insertId}] = await Db.promise().query('INSERT INTO tbl_user (us_name, us_photo, us_profile_description, us_email, us_mobile, us_address, us_gender, us_password, us_role, us_cntry_id, us_state_id, us_grp_id, us_city, us_province) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',[name,
+                let [{insertId}] = await Db.promise().query('INSERT INTO tbl_user (us_name, us_photo, us_profile_description, us_email, us_mobile, us_address, us_gender, us_password, us_role, us_cntry_id, us_state_id, us_grp_id, us_city, us_province, us_corporation) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',[name,
                     generatedImageName,
                     profileDescription,
                     email,
@@ -83,7 +85,8 @@ router.post('/:id/register',uploadMulter.single('userPhoto'), async(req, res)=> 
                     stateId,
                     groupId,
                     city,
-                    province
+                    province,
+                    corporation
                 ])
                 res.status(200).json({
                     userId : insertId,
@@ -105,7 +108,7 @@ router.post('/:id/register',uploadMulter.single('userPhoto'), async(req, res)=> 
         const defaultImage = 'profile.png'
         if(result.success) {
             try {
-                let [{insertId}] = await Db.promise().query('INSERT INTO tbl_user (us_name, us_photo, us_profile_description, us_email, us_mobile, us_address, us_gender, us_password, us_role, us_cntry_id, us_state_id, us_grp_id, us_city, us_province) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',[name,
+                let [{insertId}] = await Db.promise().query('INSERT INTO tbl_user (us_name, us_photo, us_profile_description, us_email, us_mobile, us_address, us_gender, us_password, us_role, us_cntry_id, us_state_id, us_grp_id, us_city, us_province, us_corporation) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',[name,
                     defaultImage,
                     profileDescription,
                     email,
@@ -118,7 +121,8 @@ router.post('/:id/register',uploadMulter.single('userPhoto'), async(req, res)=> 
                     stateId,
                     groupId,
                     city,
-                    province     
+                    province,
+                    corporation     
                 ])
                 res.status(200).json({
                     userId : insertId,
