@@ -54,7 +54,8 @@ router.post('/register', uploadMulter.single('userPhoto'), async(req, res)=> {
             username,
             password,
             city,
-            province
+            province,
+            corporation
      } = req.body;
      const result = CreateGroup.safeParse({ categoryId,
         name,
@@ -69,7 +70,8 @@ router.post('/register', uploadMulter.single('userPhoto'), async(req, res)=> {
         username,
         password,
         city,
-        province
+        province,
+        corporation
     })
      if(req.file !== undefined) {
         const type = req.file.mimetype;
@@ -98,7 +100,7 @@ router.post('/register', uploadMulter.single('userPhoto'), async(req, res)=> {
                 // console.log(test)
                 const group_coordinator_id = insertId;
                 try {
-                    [{insertId}] = await Db.promise().query('INSERT INTO tbl_group_code (gp_name, gp_code, gp_cat_id, dis_id, lsg_id, gp_coord_id, gp_location, gp_country_id, gp_state_id, gp_city, gp_province) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',[name,
+                    [{insertId}] = await Db.promise().query('INSERT INTO tbl_group_code (gp_name, gp_code, gp_cat_id, dis_id, lsg_id, gp_coord_id, gp_location, gp_country_id, gp_state_id, gp_city, gp_province, cop_id) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',[name,
                         name,
                         categoryId,
                         district,
@@ -108,7 +110,8 @@ router.post('/register', uploadMulter.single('userPhoto'), async(req, res)=> {
                         country,
                         state,
                         city, 
-                        province
+                        province,
+                        corporation
                         ])
                     const group_id = insertId;
                     try {
@@ -162,7 +165,7 @@ router.post('/register', uploadMulter.single('userPhoto'), async(req, res)=> {
                 // console.log(test)
                 const group_coordinator_id = insertId;
                 try {
-                    [{insertId}] = await Db.promise().query('INSERT INTO tbl_group_code (gp_name, gp_code, gp_cat_id, dis_id, lsg_id, gp_coord_id, gp_location, gp_country_id, gp_state_id, gp_city, gp_province) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',[name,
+                    [{insertId}] = await Db.promise().query('INSERT INTO tbl_group_code (gp_name, gp_code, gp_cat_id, dis_id, lsg_id, gp_coord_id, gp_location, gp_country_id, gp_state_id, gp_city, gp_province,, corporation) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',[name,
                         name,
                         categoryId,
                         district,
@@ -172,7 +175,8 @@ router.post('/register', uploadMulter.single('userPhoto'), async(req, res)=> {
                         country,
                         state,
                         city,
-                        province
+                        province,
+                        corporation
                         ])
                     const group_id = insertId;
                     try {
