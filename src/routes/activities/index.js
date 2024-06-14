@@ -17,16 +17,20 @@ router.get('/all', userAuth, async(req, res)=> {
         const [activity] = await Db.promise().query('SELECT personal_activity_id,login_id, participant_name,activity_category_id, activity_title, activity_description, activity_social_media_link, activity_thumbnail,activity_likes, activity_views, activity_value,activity_on  FROM tbl_personal_activities order by activity_on DESC limit ? offset ?', [limit, offset])
         if(activity.length > 0) {
             res.status(200).json({
-                activity
+                activity,
+                success : true
             })
         } else {
-            res.status(203).json({
-                message : "activity not found"
+            res.status(204).json({
+                message : "Activity not found",
+                success : false
             })
         }
     } catch (error) {
-        res.status(404).json({
-            message : "can't fetch activity"
+        res.status(500).json({
+            message : "SQL Query Execution Failed | Can't fetch activity",
+            success : false,
+            error : error.message
         })
     } 
 });
@@ -34,7 +38,6 @@ router.get('/all', userAuth, async(req, res)=> {
 router.post("/new", userAuth, uploadMulter.single('activityThumbnail'), async(req, res) => {
     const { name, category, subCategory, address, activityTitle, socialMediaLink } = req.body;
     const userId = req.userId;
-    // activityThumbnail
     if(req.file !== undefined) {
         const type = req.file.mimetype;
         const size = req.file.size;
@@ -60,24 +63,29 @@ router.post("/new", userAuth, uploadMulter.single('activityThumbnail'), async(re
                     socialMediaLink,
                     generatedImageName   
                 ])
-                res.status(200).json({
-                    activityId : insertId
+                res.status(201).json({
+                    activityId : insertId,
+                    success : true
                 })
             } catch (error) {
-                console.log(error)
-                res.status(400).json({
-                    message : "can't insert activity"
+                res.status(500).json({
+                    message : "SQL Query Execution Failed | Can't insert activity",
+                    success : false,
+                    error : error.message
                 })
             }
         } else {
-            console.log(result.error.message)
-            res.status(403).json({
-                message : "Invalid data"
+            res.status(422).json({
+                message : "Unprocessable Entity",
+                success : false,
+                error : result.error.message
             })
         } 
     } else {
-        res.status(400).json({
-            message : "Please upload photo"
+        res.status(422).json({
+            message : "Unprocessable photo",
+            success : false,
+            error : resultImage.error.message
         }) 
     }
 })
@@ -86,8 +94,9 @@ router.get('/:id', userAuth, async(req, res)=> {
     const userId = req.params.id;
     const userIdByToken = req.userId;
     if(userId != userIdByToken) {
-        return res.status(203).json({
-            message : `You do not have permission to access this user id ${userId}`
+        return res.status(403).json({
+            message : `You do not have permission to access this user id ${userId}`,
+            success : false
         })
     }
     try {
@@ -98,14 +107,14 @@ router.get('/:id', userAuth, async(req, res)=> {
                 success : true
             })
         } else {
-            res.status(203).json({
+            res.status(204).json({
                 message : `activity not found for user id ${userId}`,
                 success : false
             })
         }
     } catch (error) {
-        res.status(404).json({
-            message : "can't fetch activity",
+        res.status(500).json({
+            message : "SQL Query Execution Failed | Can't fetch activity",
             error : error.message,
             success : false
         })

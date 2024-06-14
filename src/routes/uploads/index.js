@@ -23,18 +23,22 @@ router.get('/all', async(req, res)=> {
 
     try {
         const [Uploads] = await Db.promise().query('SELECT up_id,up_name,up_planter,up_tree_name,up_group_id,up_date,up_file FROM tbl_uploads order by up_date DESC limit ? offset ?', [limit, offset])
-        if(Uploads.length !==0) {
+        if(Uploads.length !== 0) {
             res.status(200).json({
-                Uploads
+                Uploads,
+                success : true
             })
         } else {
-            res.status(203).json({
-                message : "Uploads not found"
+            res.status(204).json({
+                message : "Uploads not found",
+                success : false
             })
         }
     } catch (error) {
-        res.status(404).json({
-            message : "can't fetch Uploads"
+        res.status(500).json({
+            message : "SQL Query Execution Failed | Can't fetch Uploads",
+            success : false,
+            error : error.message
         })
     } 
 });
@@ -44,17 +48,20 @@ router.get('/me', userAuth, async(req, res)=> {
         const [Uploads] = await Db.promise().query('SELECT up_id,up_name,up_planter,up_tree_name,up_group_id,up_date,up_file FROM tbl_uploads where up_reg_id = ? ',[req.userId])
         if(Uploads.length !==0) {
             res.status(200).json({
-                Uploads
+                Uploads,
+                success : true
             })
         } else {
-            res.status(203).json({
-                message : "user don't have Uploads"
+            res.status(204).json({
+                message : "user don't have Uploads",
+                success : false
             })
         }
     } catch (error) {
-        console.log(error)
-        res.status(404).json({
-            message : "can't fetch Uploads"
+        res.status(500).json({
+            message : "SQL Query Execution Failed | Can't fetch Uploads",
+            success : false,
+            error : error.message
         })
     } 
 });
@@ -93,58 +100,32 @@ router.post('/new', userAuth, uploadMulter.single('image'), async(req, res)=> {
                     generatedImageName    
                 ])
                 res.status(200).json({
-                    uploadsId : insertId
+                    uploadsId : insertId,
+                    success : true
                 })
             } catch (error) {
-                console.log(error)
-                res.status(400).json({
-                    message : "can't insert uploads"
+                res.status(500).json({
+                    message : "SQL Query Execution Failed | Can't insert uploads",
+                    success : false,
+                    error : error.message
                 })
             }
         } else {
-            res.state(403).json({
-                message : "Invalid data"
+            res.state(422).json({
+                message : "Unprocessable Entity",
+                success : false,
+                error : result.error.message
             })
         }
     } else {
         res.status(400).json({
-            message : "Please upload photo"
+            message : "Unprocessable Image file",
+            success : false,
+            error : resultImage.error.message
         })
     }
     
 });
 
-router.post('/test', uploadMulter.single('imageFile'), async(req, res) => {
-    // console.log(req.file)
-    
-    if(req.file !== undefined) {
-        const type = req.file.mimetype;
-        const size = req.file.size;
-        const result = ImageFileValidate.safeParse({type, size})
-        const buffer = await sharp(req.file.buffer).resize(1000).toBuffer()
-        const command = new PutObjectCommand({
-            Bucket : bucketName,
-            Key : randomImageName(),
-            Body : buffer,
-            ContentType : req.file.mimetype
-        })
-        if(result.success) {
-            await s3.send(command);
-            // s3.
-            res.status(200).json({
-                message : "test route workig......!"
-            })
-        } else {
-            res.status(200).json({
-                message : "Invalid data"
-            })
-        }
-    } else {
-        res.status(400).json({
-            message : "Please upload photo"
-        })
-    }
-    
-})
 
 module.exports = router;

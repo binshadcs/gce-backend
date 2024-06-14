@@ -35,7 +35,9 @@ app.use(function(req, res, next) {
 app.use(function(err, req, res, next) {
     console.log(err)
 	res.status(500).json({
-		msg : "server crash!!"
+		message : "server crash!!",
+        success : false,
+        error : err.message
 	})
 })
 app.listen(3000, ()=> {

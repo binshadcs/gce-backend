@@ -20,21 +20,28 @@ router.post('/register', async(req, res) => {
                 const [{insertId}] = await Db.promise().query('INSERT INTO tbl_ngo (group_id, no_of_members, country_id, state_id, district_id, lsgd_id, city, province) VALUES(?,?,?,?,?,?, ?, ?)', [groupId, members, value[0][0].gp_country_id, value[0][0].gp_state_id, value[0][0].dis_id, value[0][0].lsg_id], value[0][0].gp_city, value[0][0].gp_province)
                 
                 res.status(200).json({
-                    NgoId : insertId
+                    NgoId : insertId,
+                    success : true
                 })
             } catch (error) {
-                res.status(404).json({
-                    message : "can't fetch data"
+                res.status(500).json({
+                    message : "SQL Query Execution Failed | can't fetch data",
+                    success : false,
+                    error : error.message
                 })
             } 
         } catch (error) {
-            res.status(404).json({
-                message : "can't fetch data"
+            res.status(500).json({
+                message : " SQL Query Execution Failed | Can't fetch data",
+                success : false,
+                error : error.message
             })
         } 
     } else {
-        res.status(400).json({
-            message : "invalid input"
+        res.status(422).json({
+            message : "Unprocessable Entity",
+            success : false,
+            error : result.error.message
         })
     }
 }) 

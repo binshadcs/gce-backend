@@ -9,33 +9,31 @@ const { uploadMulter } = require('../../config/fileMulter');
 const sharp = require('sharp');
 const { PutObjectCommand } = require('@aws-sdk/client-s3');
 const { bucketName, s3 } = require('../../config/bucket');
+const { default: errorMap } = require('zod/locales/en.js');
 
 const router = Router()
-
-router.get('/', (req, res)=> {
-    res.status(200).json({
-        message : "coordinator!!"
-    })
-}); 
 
 router.get('/all', async(req, res)=> {
     try {
         const [coordinators] = await Db.promise().query('select * from tbl_group_coordinators')
-        // console.log(coordinators)
-        if(coordinators.length > 0) {
-            res.status(404).json({
-                coordinators
+        if(coordinators.length != 0) {
+            res.status(200).json({
+                coordinators,
+                success : true
             })
             
         } else {
-            res.status(200).json({
-                message : "coordinators not found"
+            res.status(204).json({
+                message : "coordinators not found",
+                success : false
             })
         }
     } catch (error) {
         console.log(error)
-        res.status(404).json({
-            message : "can't fetch coordinators"
+        res.status(500).json({
+            message : "SQL Query Execution Failed | can't fetch coordinators",
+            success : false,
+            error : error.message
         })
     }
 }) 
@@ -55,7 +53,8 @@ router.post('/register', uploadMulter.single('userPhoto'), async(req, res)=> {
             password,
             city,
             province,
-            corporation
+            corporation,
+            wardNo
      } = req.body;
      const result = CreateGroup.safeParse({ categoryId,
         name,
@@ -71,7 +70,8 @@ router.post('/register', uploadMulter.single('userPhoto'), async(req, res)=> {
         password,
         city,
         province,
-        corporation
+        corporation,
+        wardNo
     })
      if(req.file !== undefined) {
         const type = req.file.mimetype;
@@ -100,7 +100,7 @@ router.post('/register', uploadMulter.single('userPhoto'), async(req, res)=> {
                 // console.log(test)
                 const group_coordinator_id = insertId;
                 try {
-                    [{insertId}] = await Db.promise().query('INSERT INTO tbl_group_code (gp_name, gp_code, gp_cat_id, dis_id, lsg_id, gp_coord_id, gp_location, gp_country_id, gp_state_id, gp_city, gp_province, cop_id) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',[name,
+                    [{insertId}] = await Db.promise().query('INSERT INTO tbl_group_code (gp_name, gp_code, gp_cat_id, dis_id, lsg_id, gp_coord_id, gp_location, gp_country_id, gp_state_id, gp_city, gp_province, cop_id, gp_ward_no ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',[name,
                         name,
                         categoryId,
                         district,
@@ -111,49 +111,51 @@ router.post('/register', uploadMulter.single('userPhoto'), async(req, res)=> {
                         state,
                         city, 
                         province,
-                        corporation
+                        corporation,
+                        wardNo
                         ])
                     const group_id = insertId;
                     try {
                         [{insertId}] = await Db.promise().query('UPDATE tbl_group_coordinators SET gp_id = ? WHERE co_ord_id = ?',[group_id, group_coordinator_id]); 
-                        res.status(200).json({
+                        res.status(201).json({
                             group_id,
-                            coordinator_id : group_coordinator_id
+                            coordinator_id : group_coordinator_id,
+                            success : true
                         })
                     } catch (error) {
-                        console.log(error)
-                        res.status(404).json({
-                            message : "can't insert data"
+                        res.status(500).json({
+                            message : "SQL Query Execution Failed | can't insert data",
+                            success : false,
+                            error : error.message
                         })
                     }  
     
                 } catch (error) {
-                    console.log(error)
-                    res.status(404).json({
-                        message : "can't insert data"
+                    res.status(500).json({
+                        message : "SQL Query Execution Failed | Can't insert data",
+                        success : false,
+                        error : error.message
                     })
                 } 
             } catch (error) {
-                // console.log(error)
-                // console.log(error)
-                res.status(404).json({
-                    message : "can't insert data"
+                res.status(500).json({
+                    message : "SQL Query Execution Failed | Can't insert data",
+                    success : false,
+                    error : error.message
                 })
             } 
         } else {
-            // console.log(result.error.message)
-            // console.log(resultImage.error.message)
-            res.status(400).json({
-                message : "Invalid input"
+            res.status(422).json({
+                message : "Unprocessable Entity",
+                success : false,
+                error : result.error.message
             })
         }
      } else {
-        // What if user don't have an image
         const defaultImage = 'profile.png'
         if(result.success) {
             const hashedPassword = await hashPassword(password)
             try {
-                // await s3.send(command);
                 let [{insertId}] = await Db.promise().query('INSERT INTO tbl_group_coordinators (gp_id, co_ord_name, co_ord_contact, co_profession, co_username, co_password,co_ord_photo ) VALUES(?, ?, ?, ?, ?, ?, ?)',[-1,
                     coordinator_name,
                     whatsapp_number,
@@ -162,10 +164,9 @@ router.post('/register', uploadMulter.single('userPhoto'), async(req, res)=> {
                     hashedPassword,
                     defaultImage
                 ])
-                // console.log(test)
                 const group_coordinator_id = insertId;
                 try {
-                    [{insertId}] = await Db.promise().query('INSERT INTO tbl_group_code (gp_name, gp_code, gp_cat_id, dis_id, lsg_id, gp_coord_id, gp_location, gp_country_id, gp_state_id, gp_city, gp_province,, corporation) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',[name,
+                    [{insertId}] = await Db.promise().query('INSERT INTO tbl_group_code (gp_name, gp_code, gp_cat_id, dis_id, lsg_id, gp_coord_id, gp_location, gp_country_id, gp_state_id, gp_city, gp_province, cop_id, gp_ward_no ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',[name,
                         name,
                         categoryId,
                         district,
@@ -176,59 +177,58 @@ router.post('/register', uploadMulter.single('userPhoto'), async(req, res)=> {
                         state,
                         city,
                         province,
-                        corporation
+                        corporation,
+                        wardNo
                         ])
                     const group_id = insertId;
                     try {
                         [{insertId}] = await Db.promise().query('UPDATE tbl_group_coordinators SET gp_id = ? WHERE co_ord_id = ?',[group_id, group_coordinator_id]); 
                         res.status(200).json({
                             group_id,
-                            coordinator_id : group_coordinator_id
+                            coordinator_id : group_coordinator_id,
+                            success : true
                         })
                     } catch (error) {
-                        console.log(error)
-                        res.status(404).json({
-                            message : "can't insert data"
+                        res.status(500).json({
+                            message : "SQL Query Execution Failed | Can't insert data",
+                            success : false,
+                            error : error.message
                         })
                     }  
     
                 } catch (error) {
-                    console.log(error)
-                    res.status(404).json({
-                        message : "can't insert data"
+                    res.status(500).json({
+                        message : "SQL Query Execution Failed | Can't insert data",
+                        success : false,
+                        error : error.message
                     })
                 } 
             } catch (error) {
-                // console.log(error)
-                // console.log(error)
-                res.status(404).json({
-                    message : "can't insert data"
+                res.status(500).json({
+                    message : "SQL Query Execution Failed | Can't insert data",
+                    success : false,
+                    error : error.message
                 })
             } 
         } else {
-            // console.log(result.error.message)
-            // console.log(resultImage.error.message)
-            res.status(400).json({
-                message : "Invalid input"
+            res.status(422).json({
+                message : "Unprocessable Image",
+                success : false,
+                error : resultImage.error.message
             })
         } 
      }
-    
 });
 
 router.post('/login', async(req, res)=> {
     const { username, password } = req.body;
-    // console.log(req.body)
     const result = CoordinatorLogin.safeParse({username, password});
-    // const hashedPassword = await hashPassword(password)
-    // console.log(hashedPassword)
     if(result.success) {
         try {
             let [value] = await Db.promise().query('SELECT co_username, co_ord_id, gp_id, co_password FROM tbl_group_coordinators where co_username = ?',[username]);
             console.log(value)
             if(value.length !== 0) {
                 const hashing = await comparePassword(password, value[0].co_password)
-                // console.log(hashing)
                 if(hashing === true) {
                     const token = jwt.sign({
                                 id: value[0].co_ord_id,
@@ -243,51 +243,58 @@ router.post('/login', async(req, res)=> {
                             groupId : value[0].gp_id,
                             roleId : 2,
                             token 
-                        }
+                        },
+                        success : true
                     })
                 } else {
-                    res.status(400).json({
-                        message : "Incorrect password"
+                    res.status(401).json({
+                        message : "Incorrect password",
+                        success : false
                     })
                 }
             } else {
-                res.status(404).json({
-                    message : "User not found"
+                res.status(401).json({
+                    message : "User not found",
+                    success : false
                 })
             }
         } catch (error) {
-            console.log(error)
-            res.status(404).json({
-                message : "Can't fecth data"
+            res.status(500).json({
+                message : "SQL Query Execution Failed | Can't fecth data",
+                success : false,
+                error : error.message
             })
         }
     } else {
-        res.status(400).json({
-            message : "Invalid data"
+        res.status(422).json({
+            message : "Unprocessable Entity",
+            success : false,
+            error : result.error.message
         })
     }
 });
 
 router.post('/:id', coordinatorAuth, async(req, res)=> {
     const coordinator_id = req.params.id;
-    // const result = CoordinatorSpecific.safeParse( "tss" )
-    // console.log(result)
     try {
         const [coordinator] = await Db.promise().query('SELECT co_ord_id, gp_id, co_ord_name, co_ord_contact, co_profession, co_refferel_code  from tbl_group_coordinators where co_ord_id = ?',[coordinator_id]);
         console.log(coordinator)
-        if(coordinator.length > 0) {
-            res.status(404).json({
-                coordinator
+        if(coordinator.length != 0) {
+            res.status(200).json({
+                coordinator,
+                success : true
             })
         } else {
-            res.status(400).json({
-                message : "Coordinator not found"
+            res.status(204).json({
+                message : "Coordinator not found",
+                success : false
             })
         }
     } catch (error) {
-        console.log(error)
-        res.status(404).json({
-            message : "can't fetch Coordinator"
+        res.status(500).json({
+            message : "SQL Query Execution Failed | Can't fetch Coordinator",
+            success : false,
+            error : error.message
         })
     } 
 })

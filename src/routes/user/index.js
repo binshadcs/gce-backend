@@ -21,7 +21,6 @@ router.get('/', (req, res)=> {
 
 router.post('/:id/register',uploadMulter.single('userPhoto'), async(req, res)=> {
     const groupId = Number(req.params.id);
-    // console.log(groupId)
     const { 
         name,
         email,
@@ -35,12 +34,13 @@ router.post('/:id/register',uploadMulter.single('userPhoto'), async(req, res)=> 
         referalCode,
         city,
         province,
-        corporation
+        corporation,
+        districtId,
+        wardNo
      } = req.body;
      const result = CreateUser.safeParse({ groupId,
         name,
         email,
-        // userPhoto,
         profileDescription,
         mobileNumber,
         countryId,
@@ -51,11 +51,11 @@ router.post('/:id/register',uploadMulter.single('userPhoto'), async(req, res)=> 
         referalCode,
         city,
         province,
-        corporation
+        corporation,
+        districtId,
+        wardNo
 });
-    //  console.log(req.body)
      if(req.file !== undefined) {
-        //  console.log(req.file)
         const type = req.file.mimetype;
         const size = req.file.size;
         const resultImage = ImageFileValidate.safeParse({type, size})
@@ -68,11 +68,10 @@ router.post('/:id/register',uploadMulter.single('userPhoto'), async(req, res)=> 
             Body : buffer,
             ContentType : req.file.mimetype
         })
-        // console.log(result.error.message)
         if(result.success && resultImage.success) {
             try {
                 await s3.send(command);
-                let [{insertId}] = await Db.promise().query('INSERT INTO tbl_user (us_name, us_photo, us_profile_description, us_email, us_mobile, us_address, us_gender, us_password, us_role, us_cntry_id, us_state_id, us_grp_id, us_city, us_province, us_corporation) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',[name,
+                let [{insertId}] = await Db.promise().query('INSERT INTO tbl_user (us_name, us_photo, us_profile_description, us_email, us_mobile, us_address, us_gender, us_password, us_role, us_cntry_id, us_state_id, us_grp_id, us_city, us_province, us_corporation, us_district, us_ward) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',[name,
                     generatedImageName,
                     profileDescription,
                     email,
@@ -86,29 +85,34 @@ router.post('/:id/register',uploadMulter.single('userPhoto'), async(req, res)=> 
                     groupId,
                     city,
                     province,
-                    corporation
+                    corporation,
+                    districtId,
+                    wardNo
                 ])
                 res.status(200).json({
                     userId : insertId,
-                    message : "user created successfully"
+                    message : "User created successfully",
+                    success : true
                 })
             } catch (error) {
-                console.log(error)
-                res.status(404).json({
-                    message : "can't insert user data"
+                res.status(500).json({
+                    message : "SQL Query Execution Failed | Can't insert user data",
+                    success : false,
+                    error : error.message
                 })
             } 
         } else {
-            console.log(result.error.message)
-            res.status(400).json({
-                message : "Invalid data or image"
+            res.status(422).json({
+                message : "Unprocessable Entity",
+                success : false,
+                error : result.error.message
             })
     }
     } else {
         const defaultImage = 'profile.png'
         if(result.success) {
             try {
-                let [{insertId}] = await Db.promise().query('INSERT INTO tbl_user (us_name, us_photo, us_profile_description, us_email, us_mobile, us_address, us_gender, us_password, us_role, us_cntry_id, us_state_id, us_grp_id, us_city, us_province, us_corporation) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',[name,
+                let [{insertId}] = await Db.promise().query('INSERT INTO tbl_user (us_name, us_photo, us_profile_description, us_email, us_mobile, us_address, us_gender, us_password, us_role, us_cntry_id, us_state_id, us_grp_id, us_city, us_province, us_corporation, us_district, us_ward) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',[name,
                     defaultImage,
                     profileDescription,
                     email,
@@ -122,22 +126,27 @@ router.post('/:id/register',uploadMulter.single('userPhoto'), async(req, res)=> 
                     groupId,
                     city,
                     province,
-                    corporation     
+                    corporation,
+                    districtId,
+                    wardNo     
                 ])
                 res.status(200).json({
                     userId : insertId,
-                    message : "user created successfully"
+                    message : "user created successfully",
+                    success :true
                 })
             } catch (error) {
-                console.log(error)
-                res.status(404).json({
-                    message : "can't insert user data"
+                res.status(500).json({
+                    message : "SQL Query Execution Failed | Can't insert user data",
+                    success : false,
+                    error : error.message
                 })
             } 
         } else {
-            console.log(result.error.message)
-            res.status(400).json({
-                message : "Invalid data or image"
+            res.status(422).json({
+                message : "Unprocessable image file",
+                success : false,
+                error : result.error.message
             })
     }
     }
@@ -165,22 +174,26 @@ router.post('/login', async(req, res)=> {
                         groupId : value.us_grp_id,
                         roleId : value.us_role,
                         token 
-                    }
+                    },
+                    success : true
                 })
             } else {
-                res.status(404).json({
-                    message : "User not found"
+                res.status(401).json({
+                    message : "User not found",
+                    success : false
                 })
             }
         } catch (error) {
-            console.log(error)
-            res.status(404).json({
-                message : "Can't fecth data"
+            res.status(500).json({
+                message : "SQL Query Execution Failed | Can't fecth data",
+                success : false,
+                error : error.message
             })
         }
     } else {
-        res.status(400).json({
-            message : "Invalid data"
+        res.status(422).json({
+            message : "Unprocessable Entity",
+            success : false
         })
     }
 });
@@ -193,50 +206,59 @@ router.get("/:id",userAuth, async(req, res) => {
             const [user] = await Db.promise().query('SELECT us_id, us_name, us_photo, us_profile_description, us_email, us_mobile, us_country, us_state, us_district, us_corporation, us_lsgd, us_ward, us_address, us_gender, us_cntry_id, us_state_id, us_grp_id FROM tbl_user WHERE us_id = ? ',[userId])
             if(user) {
                 res.status(200).json({
-                    user
+                    user,
+                    success : true
                 })
             } else {
-                res.status(400).json({
-                    message : "user not found"
+                res.status(204).json({
+                    message : "User not found",
+                    success : false
                 })
             }
         } catch (error) {
-            res.status(404).json({
-                message : "can't fetch user"
+            res.status(500).json({
+                message : "SQL Query Execution Failed | Can't fetch user",
+                success : false,
+                error : error.message
             })
         } 
     } else {
-        res.status(400).json({
-            message : "Try with logged in user"
+        res.status(403).json({
+            message : "Unauthorized Access",
+            success : false
         })
     }
     
 })
 
-router.get("/group/:id",coordinatorAuth, async(req, res) => {
+router.get("/group/:id", coordinatorAuth, async(req, res) => {
     const groupId = req.params.id;
     const groupByToken = req.groupId;
-    // console.log(groupByToken)
     if(groupByToken == groupId) {
         try {
             const [users] = await Db.promise().query('SELECT us_id, us_name, us_email, us_mobile FROM tbl_user WHERE us_grp_id = ?',[groupId])
             if(users.length !== 0) {
                 res.status(200).json({
-                    users
+                    users,
+                    success : true
                 })
             } else {
-                res.status(400).json({
-                    message : "users not found"
+                res.status(204).json({
+                    message : "users not found",
+                    success : false
                 })
             }
         } catch (error) {
-            res.status(404).json({
-                message : "can't fetch users"
+            res.status(500).json({
+                message : "SQL Query Execution Failed | can't fetch users",
+                success : false,
+                error : error.message
             })
         }
     } else {
-        res.status(400).json({
-            message : "you can't access other group user data"
+        res.status(403).json({
+            message : "Unauthorized Access",
+            success : false
         })
     } 
 })

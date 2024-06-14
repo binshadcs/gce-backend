@@ -41,17 +41,21 @@ router.post('/register', async(req, res) => {
             ])
             
             res.status(200).json({
-                residenceAssociationId : insertId
+                residenceAssociationId : insertId,
+                success : true
             })
         } catch (error) {
-            console.log(error)
-            res.status(404).json({
-                message : "can't insert data"
+            res.status(500).json({
+                message : "SQL Query Execution Failed | Can't insert data",
+                success : false,
+                error : error.message
             })
         } 
     } else {
-        res.status(400).json({
-            message : "invalid input"
+        res.status(422).json({
+            message : "Unprocessable Entity",
+            success : false,
+            error : result.error.message
         })
     }
 }) 
