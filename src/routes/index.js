@@ -56,7 +56,7 @@ router.get("/state", async(req, res) => {
 
 router.get("/district", async(req, res) => {
     try {
-        const [district] = await Db.promise().query('SELECT dis_id, dis_name FROM tbl_district')
+        const [district] = await Db.promise().query('SELECT dis_id, dis_name FROM tbl_district order by dis_name')
         if(district.length > 0) {
             res.status(404).json({
                 district

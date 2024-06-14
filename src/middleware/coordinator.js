@@ -16,7 +16,7 @@ async function coordinatorAuth(req, res, next) {
                 next()
             } else {
                 res.status(400).json({
-                    message : "Try to access with coordinator credential"
+                    message : "Unauthorized Access | You do not have permission to access this resource."
                 })
             }
         } catch (error) {

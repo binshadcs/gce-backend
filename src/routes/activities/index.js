@@ -79,4 +79,34 @@ router.post("/new", userAuth, uploadMulter.single('activityThumbnail'), async(re
     }
 })
 
+router.get('/:id', userAuth, async(req, res)=> {
+    const userId = req.params.id;
+    const userIdByToken = req.userId;
+    if(userId != userIdByToken) {
+        return res.status(203).json({
+            message : `You do not have permission to access this user id ${userId}`
+        })
+    }
+    try {
+        const [activity] = await Db.promise().query('SELECT personal_activity_id, participant_name,activity_category_id, activity_title, activity_description, activity_social_media_link, activity_thumbnail,activity_likes, activity_views, activity_value,activity_on  FROM tbl_personal_activities where login_id = ?', [userId])
+        if(activity.length !== 0) {
+            res.status(200).json({
+                activity,
+                success : true
+            })
+        } else {
+            res.status(203).json({
+                message : `activity not found for user id ${userId}`,
+                success : false
+            })
+        }
+    } catch (error) {
+        res.status(404).json({
+            message : "can't fetch activity",
+            error : error.message,
+            success : false
+        })
+    } 
+});
+
 module.exports = router;

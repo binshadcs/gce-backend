@@ -18,7 +18,7 @@ async function userAuth(req, res, next) {
                 next()
              } else {
                  res.status(400).json({
-                     message : "Try to access with user credential"
+                     message : "Unauthorized Access | You do not have permission to access this resource."
                  })
              }
          } catch (error) {
@@ -28,7 +28,7 @@ async function userAuth(req, res, next) {
          }
      } else {
         res.status(400).json({
-            message : "Authorization header to found"
+            message : "Authorization header not found"
         })
      }
      // } else {
