@@ -10,8 +10,11 @@ const { bucketName, s3 } = require('../../config/bucket');
 const router = Router()
 
 router.get('/all', userAuth, async(req, res)=> {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const offset = (page - 1) * limit;
     try {
-        const [activity] = await Db.promise().query('SELECT personal_activity_id,login_id, participant_name,activity_category_id, activity_title, activity_description, activity_social_media_link, activity_thumbnail,activity_likes, activity_views, activity_value,activity_on  FROM tbl_personal_activities')
+        const [activity] = await Db.promise().query('SELECT personal_activity_id,login_id, participant_name,activity_category_id, activity_title, activity_description, activity_social_media_link, activity_thumbnail,activity_likes, activity_views, activity_value,activity_on  FROM tbl_personal_activities order by activity_on DESC limit ? offset ?', [limit, offset])
         if(activity.length > 0) {
             res.status(200).json({
                 activity

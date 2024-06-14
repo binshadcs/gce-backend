@@ -17,14 +17,18 @@ router.get('/', (req, res)=> {
 }) 
 
 router.get('/all', async(req, res)=> {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const offset = (page - 1) * limit;
+
     try {
-        const [Uploads] = await Db.promise().query('SELECT up_id,up_name,up_planter,up_tree_name,up_group_id,up_date,up_file FROM tbl_uploads limit 20')
+        const [Uploads] = await Db.promise().query('SELECT up_id,up_name,up_planter,up_tree_name,up_group_id,up_date,up_file FROM tbl_uploads order by up_date DESC limit ? offset ?', [limit, offset])
         if(Uploads.length !==0) {
-            res.status(404).json({
+            res.status(200).json({
                 Uploads
             })
         } else {
-            res.status(200).json({
+            res.status(203).json({
                 message : "Uploads not found"
             })
         }
