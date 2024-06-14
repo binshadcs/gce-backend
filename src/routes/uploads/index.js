@@ -39,11 +39,11 @@ router.get('/me', userAuth, async(req, res)=> {
     try {
         const [Uploads] = await Db.promise().query('SELECT up_id,up_name,up_planter,up_tree_name,up_group_id,up_date,up_file FROM tbl_uploads where up_reg_id = ? ',[req.userId])
         if(Uploads.length !==0) {
-            res.status(404).json({
+            res.status(200).json({
                 Uploads
             })
         } else {
-            res.status(200).json({
+            res.status(203).json({
                 message : "user don't have Uploads"
             })
         }
