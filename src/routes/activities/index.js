@@ -86,8 +86,7 @@ router.post("/new", userAuth, uploadMulter.single('activityThumbnail'), async(re
     } else {
         res.status(422).json({
             message : "Unprocessable photo",
-            success : false,
-            error : resultImage.error.message
+            success : false
         }) 
     }
 })
