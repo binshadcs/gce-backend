@@ -6,7 +6,6 @@ const groupRoute = require('./group/index');
 const uploadRoute = require('./uploads/index');
 const userRoute = require('./user/index');
 const { Db } = require('../config/db');
-const sharp = require('sharp');
 
 const router = Router()
 
@@ -75,21 +74,25 @@ router.get("/district", async(req, res) => {
 })
 
 router.get("/lsg/:id", async(req, res) => {
-    const district_id = req.params.id;
+    const corporation_id = req.params.id;
     try {
-        const [district] = await Db.promise().query('SELECT lsg_id, lsg_name FROM tbl_lsgd where lsg_dist_id=?',[district_id])
-        if(district.length > 0) {
-            res.status(404).json({
-                district
+        const [lsg] = await Db.promise().query('SELECT lsg_id, lsg_name FROM tbl_lsgd where lsg_corp_id = ?',[corporation_id])
+        if(lsg.length !== 0) {
+            res.status(200).json({
+                lsg,
+                success : true
             })
         } else {
-            res.status(200).json({
-                message : "Category not found"
+            res.status(203).json({
+                message : `Lsg not found on corporation id ${corporation_id}`,
+                success : false
             })
         }
     } catch (error) {
         res.status(404).json({
-            message : "can't fetch category"
+            message : "SQL Query Execution Failed",
+            error : error.message,
+            success : false
         })
     } 
 })
@@ -167,6 +170,31 @@ router.get("/clubs", async(req, res) => {
         console.log(error)
         res.status(404).json({
             message : "can't fetch clubs"
+        })
+    } 
+})
+
+router.get("/corporation/:id", async(req, res) => {
+    const district_id = req.params.id;
+    try {
+        const [corporation] = await Db.promise().query('SELECT * FROM tbl_corporation where cop_dis_id = ?', [district_id])
+        if(corporation.length !== 0) {
+            res.status(200).json({
+                corporation,
+                success : true
+            })
+        } else {
+            res.status(400).json({
+                message : `corporation not found on district id ${district_id}`,
+                success : false
+            })
+        }
+    } catch (error) {
+        console.log(error)
+        res.status(404).json({
+            message : "SQL Query Execution Failed for fetching corporation",
+            error : error.message,
+            success: false
         })
     } 
 })
