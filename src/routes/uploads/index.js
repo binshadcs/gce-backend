@@ -22,7 +22,7 @@ router.get('/all', async(req, res)=> {
     const offset = (page - 1) * limit;
 
     try {
-        const [Uploads] = await Db.promise().query('SELECT up_id,up_name,up_planter,up_tree_name,up_group_id,up_date,up_file FROM tbl_uploads order by up_date DESC limit ? offset ?', [limit, offset])
+        const [Uploads] = await Db.promise().query('SELECT up_id,up_name,up_planter,up_tree_name,up_group_id,up_date,up_file FROM tbl_uploads order by up_date limit ? offset ?', [limit, offset])
         if(Uploads.length !== 0) {
             res.status(200).json({
                 Uploads,
