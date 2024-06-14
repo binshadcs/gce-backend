@@ -7,6 +7,7 @@ const sharp = require('sharp');
 const { randomImageName } = require('../util');
 const { PutObjectCommand } = require('@aws-sdk/client-s3');
 const { bucketName, s3 } = require('../../config/bucket');
+const { compareSync } = require('bcrypt');
 const router = Router()
 
 router.get('/all', userAuth, async(req, res)=> {
@@ -42,7 +43,7 @@ router.post("/new", userAuth, uploadMulter.single('activityThumbnail'), async(re
         const type = req.file.mimetype;
         const size = req.file.size;
         const resultImage = ImageFileValidate.safeParse({type, size})
-        const result = CreateActivity.safeParse({userId, name, category, subCategory, address, activityTitle, socialMediaLink})
+        const result = CreateActivity.safeParse({userId, name, category : parseInt(category), subCategory, address, activityTitle, socialMediaLink})
         const buffer = await sharp(req.file.buffer).resize(1000).toBuffer()
         let generatedImageName = randomImageName()
         const command = new PutObjectCommand({
@@ -56,7 +57,7 @@ router.post("/new", userAuth, uploadMulter.single('activityThumbnail'), async(re
                 await s3.send(command);
                 let [{insertId}] = await Db.promise().query('INSERT INTO tbl_personal_activities (login_id,participant_name, activity_category_id, activity_sub_category, participant_address, activity_title, activity_social_media_link, activity_thumbnail ) VALUES(?, ?, ?, ?, ?, ?, ?, ?)',[userId,
                     name,
-                    category,
+                    parsedCategory,
                     subCategory,
                     address,
                     activityTitle,
@@ -75,6 +76,7 @@ router.post("/new", userAuth, uploadMulter.single('activityThumbnail'), async(re
                 })
             }
         } else {
+            console.log(result.error.message)
             res.status(422).json({
                 message : "Unprocessable Entity",
                 success : false,
