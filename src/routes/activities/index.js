@@ -57,7 +57,7 @@ router.post("/new", userAuth, uploadMulter.single('activityThumbnail'), async(re
                 await s3.send(command);
                 let [{insertId}] = await Db.promise().query('INSERT INTO tbl_personal_activities (login_id,participant_name, activity_category_id, activity_sub_category, participant_address, activity_title, activity_social_media_link, activity_thumbnail ) VALUES(?, ?, ?, ?, ?, ?, ?, ?)',[userId,
                     name,
-                    parsedCategory,
+                    category,
                     subCategory,
                     address,
                     activityTitle,
